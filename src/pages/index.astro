@@ -1,16 +1,620 @@
 ---
+// src/pages/index.astro
+import '../styles/global.css';
+
+interface DownloadOptions {
+  mp3?: string;
+  wav?: string;
+}
+
+interface TrackConfig {
+  id: number;
+  title: string;
+  subtitle: string;
+  audio: string;
+  download: DownloadOptions | false;
+  gradient: string;
+  accentColor: string;
+}
+
+const tracks: TrackConfig[] = [
+  {
+    id: 1,
+    title: 'Track 01',
+    subtitle: 'Industrial Beats',
+    audio: '/music/IHEIZ_02.mp3',
+    download: { mp3: '/music/IHEIZ_01.mp3', wav: '/music/IHEIZ_01.wav' },
+    gradient: 'from-red-900 to-red-600',
+    accentColor: '#f87171',
+  },
+  {
+    id: 2,
+    title: 'Track 02',
+    subtitle: 'Cyberpunk Synth',
+    audio: '/music/IHEIZ_01.wav',
+    download: { wav: '/music/IHEIZ_01.wav' },
+    gradient: 'from-amber-800 to-amber-500',
+    accentColor: '#fbbf24',
+  },
+  {
+    id: 3,
+    title: 'Track 03',
+    subtitle: 'Heavy Bass',
+    audio: '/music/IHEIZ_03.mp3',
+    download: false,
+    gradient: 'from-slate-800 to-slate-600',
+    accentColor: '#94a3b8',
+  },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Track Selection - Audio Waveform Player</title>
+    <style>
+      /* DESKTOP-SCHIENEN-SYSTEM (Vertikale Schrägen) */
+      @media (min-width: 768px) {
+        .sliding-panel {
+          clip-path: polygon(15vw 0%, 100% 0%, calc(100% - 15vw) 100%, 0% 100%);
+          -webkit-clip-path: polygon(15vw 0%, 100% 0%, calc(100% - 15vw) 100%, 0% 100%);
+          width: 55vw;
+          height: 100%;
+          isolation: isolate;
+          will-change: transform, width, clip-path;
+        }
+        #panel-1 { left: 0; transform-origin: left center; }
+        #panel-2 { left: 50%; }
+        #panel-3 { right: 0; transform-origin: right center; }
+      }
+
+      /* MOBILE-SCHIENEN-SYSTEM (Horizontale Schrägen an den Übergängen) */
+      @media (max-width: 767px) {
+        .sliding-panel {
+          width: 100%;
+          left: 0;
+          isolation: isolate;
+          will-change: transform, height, clip-path;
+        }
+        #panel-1 {
+          clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
+          -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
+        }
+        #panel-2 {
+          clip-path: polygon(0% 4vh, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
+          -webkit-clip-path: polygon(0% 4vh, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
+        }
+        #panel-3 {
+          clip-path: polygon(0% 4vh, 100% 0%, 100% 100%, 0% 100%);
+          -webkit-clip-path: polygon(0% 4vh, 100% 0%, 100% 100%, 0% 100%);
+        }
+      }
+
+      .sliding-panel {
+        cursor: pointer;
+      }
+      body.is-expanded .sliding-panel {
+        cursor: default;
+      }
+
+      #reset-btn {
+        clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+        -webkit-clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+      }
+
+      .parallelogram-btn {
+        clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+        -webkit-clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+      }
+    </style>
+  </head>
+  <body class="bg-black text-white h-screen overflow-hidden select-none">
+
+    <main class="relative w-full h-full overflow-hidden flex flex-col md:flex-row items-center">
+      
+      {tracks.map((track) => (
+        <section 
+          id={`panel-${track.id}`} 
+          data-index={track.id} 
+          class={`sliding-panel absolute bg-gradient-to-br ${track.gradient} flex flex-col items-center justify-center ${track.id === 2 ? 'z-20' : 'z-10'}`}
+        >
+          <div class="panel-content w-full h-full flex flex-col items-center justify-center relative px-4 sm:px-6 pointer-events-none">
+            
+            <div class="header-group text-center pointer-events-auto">
+              <h2 class="text-3xl sm:text-5xl md:text-6xl 2xl:text-7xl font-black uppercase tracking-tighter transition-all">
+                {track.title}
+              </h2>
+              <p class="text-xs sm:text-sm 2xl:text-base font-bold uppercase tracking-widest text-white/80 mt-1 sm:mt-2">
+                {track.subtitle}
+              </p>
+            </div>
+
+            <!-- PLAYER CONTAINER: responsive Höhen- & Breitenstaffelung -->
+            <div 
+              class="audio-player absolute bottom-32 sm:bottom-32 md:bottom-28 w-full max-w-lg xl:max-w-2xl px-3 sm:px-6 flex flex-col items-center opacity-0 translate-y-6 pointer-events-none"
+              data-audio-url={track.audio}
+              data-accent={track.accentColor}
+            >
+              <audio src={track.audio} preload="metadata" class="hidden"></audio>
+
+              <div class="waveform-wrapper w-full relative cursor-ew-resize py-1 sm:py-2 touch-none">
+                <canvas class="waveform-canvas w-full h-12 sm:h-16 rounded" height="64"></canvas>
+              </div>
+
+              <!-- BEDIENLEISTE: Zeitanzeige links vor den Controls -->
+              <div class="player-bar w-full flex flex-row items-center justify-between sm:justify-center gap-2 sm:gap-6 mt-2 sm:mt-4">
+                
+                <!-- ZEITANZEIGE LINKS -->
+                <div class="time-display font-mono text-[11px] sm:text-xs tracking-wider text-white/70 tabular-nums flex items-center gap-1 min-w-[70px] sm:min-w-[80px]">
+                  <span class="time-current text-white font-bold">00:00</span>
+                  <span class="text-white/40">/</span>
+                  <span class="time-total text-white/70">--:--</span>
+                </div>
+
+                <!-- STEUERELEMENTE CONTAINER -->
+                <div class="player-controls flex items-center gap-1.5 sm:gap-3">
+                  <!-- PLAY BUTTON -->
+                  <button type="button" class="btn-play p-2 sm:p-3 hover:scale-110 active:scale-95 transition-transform text-white cursor-pointer" aria-label="Play">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-8 sm:h-8 fill-current" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </button>
+
+                  <!-- PAUSE BUTTON -->
+                  <button type="button" class="btn-pause p-2 sm:p-3 hover:scale-110 active:scale-95 transition-transform text-white hidden cursor-pointer" aria-label="Pause">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-8 sm:h-8 fill-current" viewBox="0 0 24 24">
+                      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                    </svg>
+                  </button>
+
+                  <!-- MUTE TOGGLE -->
+                  <button type="button" class="btn-mute p-2 sm:p-2.5 hover:scale-110 active:scale-95 transition-transform text-white/80 hover:text-white cursor-pointer" aria-label="Ton stummschalten/aktivieren">
+                    <!-- ICON: UNMUTED -->
+                    <svg class="icon-unmuted w-5 h-5 sm:w-6 sm:h-6 fill-current" viewBox="0 0 24 24">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                    <!-- ICON: MUTED -->
+                    <svg class="icon-muted w-5 h-5 sm:w-6 sm:h-6 fill-current hidden text-red-400" viewBox="0 0 24 24">
+                      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27l4.73 4.73H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                    </svg>
+                  </button>
+
+                  <!-- DOWNLOADS -->
+                  {track.download && (
+                    <div class="download-group flex items-center gap-1.5 sm:gap-2 border-l border-white/20 pl-2 sm:pl-4 ml-1">
+                      {track.download.mp3 && (
+                        <a 
+                          href={track.download.mp3} 
+                          download 
+                          class="parallelogram-btn bg-white/10 hover:bg-white text-white hover:text-black font-black text-[10px] sm:text-xs uppercase tracking-wider px-3 py-1.5 sm:px-5 sm:py-2 transition-all flex items-center gap-1 cursor-pointer shadow-lg"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                          </svg>
+                          MP3
+                        </a>
+                      )}
+                      {track.download.wav && (
+                        <a 
+                          href={track.download.wav} 
+                          download 
+                          class="parallelogram-btn bg-white/10 hover:bg-white text-white hover:text-black font-black text-[10px] sm:text-xs uppercase tracking-wider px-3 py-1.5 sm:px-5 sm:py-2 transition-all flex items-center gap-1 cursor-pointer shadow-lg"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                          </svg>
+                          WAV
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </section>
+      ))}
+
+      <!-- RESET BUTTON -->
+      <button 
+        id="reset-btn" 
+        class="absolute bottom-[-100px] left-1/2 transform -translate-x-1/2 z-50 bg-white text-black font-black text-xs sm:text-sm uppercase tracking-widest px-6 py-3 sm:px-10 sm:py-4 shadow-2xl flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-transform opacity-0"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Zurück
+      </button>
+
+    </main>
+
+    <script>
+      import { gsap } from "gsap";
+
+      const BARS_COUNT = 70;
+      const resetBtn = document.querySelector<HTMLButtonElement>('#reset-btn');
+      const headerGroups = document.querySelectorAll<HTMLElement>('.header-group');
+      const panels = document.querySelectorAll<HTMLElement>('.sliding-panel');
+      const audioPlayers = document.querySelectorAll<HTMLElement>('.audio-player');
+      
+      let isExpanded = false;
+      let activeAudio: HTMLAudioElement | null = null;
+      const peaksCache = new Map<string, number[]>();
+
+      if (!resetBtn) throw new Error('#reset-btn fehlt im DOM');
+
+      // ZEIT-FORMATIERUNG (MM:SS)
+      function formatTime(seconds: number): string {
+        if (isNaN(seconds) || !isFinite(seconds) || seconds < 0) return '00:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      // 1. OFFLINE AUDIO CONTEXT PEAK-EXTRAKTION
+      async function extractPeaks(url: string, bars: number): Promise<number[]> {
+        if (peaksCache.has(url)) return peaksCache.get(url)!;
+
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+          const arrayBuffer = await res.arrayBuffer();
+
+          const OfflineCtxClass =
+            window.OfflineAudioContext ||
+            (window as unknown as { webkitOfflineAudioContext: typeof OfflineAudioContext }).webkitOfflineAudioContext;
+
+          if (!OfflineCtxClass) throw new Error('OfflineAudioContext nicht unterstützt');
+
+          const audioCtx = new OfflineCtxClass(1, 1, 44100);
+          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+          const channelData = audioBuffer.getChannelData(0);
+          const blockSize = Math.floor(channelData.length / bars);
+          const peaks: number[] = [];
+
+          for (let i = 0; i < bars; i++) {
+            const start = i * blockSize;
+            let sum = 0;
+            const sampleStep = 8;
+            for (let j = 0; j < blockSize; j += sampleStep) {
+              sum += Math.abs(channelData[start + j]);
+            }
+            peaks.push(sum / (blockSize / sampleStep));
+          }
+
+          const max = Math.max(...peaks, 0.01);
+          const normalized = peaks.map(p => Math.max(0.12, p / max));
+          peaksCache.set(url, normalized);
+          return normalized;
+        } catch {
+          const fallback = Array.from({ length: bars }, (_, i) => 
+            Math.max(0.15, Math.sin(i * 0.15) * 0.4 + Math.random() * 0.4 + 0.2)
+          );
+          peaksCache.set(url, fallback);
+          return fallback;
+        }
+      }
+
+      // CANVAS RENDERING MIT ROUNDRECT-FALLBACK
+      function drawWaveform(canvas: HTMLCanvasElement, peaks: number[], progress: number, accent: string) {
+        if (!peaks.length) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+        ctx.scale(dpr, dpr);
+
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        const gap = 2;
+        const totalGaps = (peaks.length - 1) * gap;
+        const barWidth = Math.max(2, (rect.width - totalGaps) / peaks.length);
+        const centerY = rect.height / 2;
+
+        peaks.forEach((peak, index) => {
+          const x = index * (barWidth + gap);
+          const barHeight = Math.max(4, peak * (rect.height * 0.85));
+          const y = centerY - barHeight / 2;
+          const barProgress = index / peaks.length;
+
+          ctx.fillStyle = barProgress <= progress ? accent : 'rgba(255, 255, 255, 0.3)';
+          ctx.beginPath();
+          if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(x, y, barWidth, barHeight, 2);
+          } else {
+            ctx.rect(x, y, barWidth, barHeight);
+          }
+          ctx.fill();
+        });
+      }
+
+      // PLAYER CONTROLLER INITIALISIERUNG
+      audioPlayers.forEach(player => {
+        const audio = player.querySelector<HTMLAudioElement>('audio');
+        const canvas = player.querySelector<HTMLCanvasElement>('.waveform-canvas');
+        const wrapper = player.querySelector<HTMLElement>('.waveform-wrapper');
+        const btnPlay = player.querySelector<HTMLButtonElement>('.btn-play');
+        const btnPause = player.querySelector<HTMLButtonElement>('.btn-pause');
+        const btnMute = player.querySelector<HTMLButtonElement>('.btn-mute');
+        const iconUnmuted = player.querySelector<SVGElement>('.icon-unmuted');
+        const iconMuted = player.querySelector<SVGElement>('.icon-muted');
+        const timeCurrent = player.querySelector<HTMLElement>('.time-current');
+        const timeTotal = player.querySelector<HTMLElement>('.time-total');
+        
+        const audioUrl = player.getAttribute('data-audio-url') || '';
+        const accent = player.getAttribute('data-accent') || '#ffffff';
+
+        if (!audio || !canvas || !wrapper || !btnPlay || !btnPause || !btnMute || !timeCurrent || !timeTotal) return;
+
+        let currentPeaks: number[] = [];
+        let isDragging = false;
+
+        extractPeaks(audioUrl, BARS_COUNT).then(peaks => {
+          currentPeaks = peaks;
+          drawWaveform(canvas, currentPeaks, 0, accent);
+        });
+
+        // Metadaten für Gesamtdauer
+        audio.addEventListener('loadedmetadata', () => {
+          timeTotal.textContent = formatTime(audio.duration);
+        });
+
+        // ResizeObserver für gestochen scharfe Balken bei Screen-Rotation / Widescreen-Resize
+        const resizeObserver = new ResizeObserver(() => {
+          if (!currentPeaks.length) return;
+          const progress = audio.duration ? audio.currentTime / audio.duration : 0;
+          drawWaveform(canvas, currentPeaks, progress, accent);
+        });
+        resizeObserver.observe(wrapper);
+
+        // Wiedergabe-Fortschritt & Zeitanzeige
+        audio.addEventListener('timeupdate', () => {
+          if (!isDragging && audio.duration) {
+            const progress = audio.currentTime / audio.duration;
+            drawWaveform(canvas, currentPeaks, progress, accent);
+            timeCurrent.textContent = formatTime(audio.currentTime);
+          }
+          if (timeTotal.textContent === '--:--' && audio.duration) {
+            timeTotal.textContent = formatTime(audio.duration);
+          }
+        });
+
+        audio.addEventListener('ended', () => {
+          btnPlay.classList.remove('hidden');
+          btnPause.classList.add('hidden');
+          timeCurrent.textContent = formatTime(0);
+          drawWaveform(canvas, currentPeaks, 0, accent);
+        });
+
+        // Play / Pause Handlers
+        btnPlay.addEventListener('click', (e) => {
+          e.stopPropagation();
+          stopAllAudio(audio);
+          activeAudio = audio;
+          audio.play().then(() => {
+            btnPlay.classList.add('hidden');
+            btnPause.classList.remove('hidden');
+          }).catch(() => {});
+        });
+
+        btnPause.addEventListener('click', (e) => {
+          e.stopPropagation();
+          audio.pause();
+          btnPlay.classList.remove('hidden');
+          btnPause.classList.add('hidden');
+        });
+
+        // MUTE TOGGLE
+        btnMute.addEventListener('click', (e) => {
+          e.stopPropagation();
+          audio.muted = !audio.muted;
+          if (audio.muted) {
+            iconUnmuted?.classList.add('hidden');
+            iconMuted?.classList.remove('hidden');
+          } else {
+            iconUnmuted?.classList.remove('hidden');
+            iconMuted?.classList.add('hidden');
+          }
+        });
+
+        // SCRUBBING
+        const handleScrub = (clientX: number) => {
+          const rect = canvas.getBoundingClientRect();
+          const progress = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+          drawWaveform(canvas, currentPeaks, progress, accent);
+          if (audio.duration) {
+            const scrubTime = progress * audio.duration;
+            audio.currentTime = scrubTime;
+            timeCurrent.textContent = formatTime(scrubTime);
+          }
+        };
+
+        wrapper.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          isDragging = true;
+          wrapper.setPointerCapture(e.pointerId);
+          handleScrub(e.clientX);
+        });
+
+        wrapper.addEventListener('pointermove', (e) => {
+          if (isDragging) handleScrub(e.clientX);
+        });
+
+        const stopDragging = (e: PointerEvent) => {
+          if (isDragging) {
+            isDragging = false;
+            try { wrapper.releasePointerCapture(e.pointerId); } catch {}
+          }
+        };
+        wrapper.addEventListener('pointerup', stopDragging);
+        wrapper.addEventListener('pointercancel', stopDragging);
+      });
+
+      function stopAllAudio(except?: HTMLAudioElement) {
+        audioPlayers.forEach(p => {
+          const a = p.querySelector<HTMLAudioElement>('audio');
+          const btnPlay = p.querySelector<HTMLButtonElement>('.btn-play');
+          const btnPause = p.querySelector<HTMLButtonElement>('.btn-pause');
+          if (a && a !== except) {
+            a.pause();
+            btnPlay?.classList.remove('hidden');
+            btnPause?.classList.add('hidden');
+          }
+        });
+      }
+
+      function fadeOutActiveAudio() {
+        if (!activeAudio || activeAudio.paused) return;
+        const current = activeAudio;
+        gsap.to(current, {
+          volume: 0,
+          duration: 0.3,
+          onComplete: () => {
+            current.pause();
+            current.volume = 1;
+            current.currentTime = 0;
+            const player = current.closest('.audio-player');
+            player?.querySelector('.btn-play')?.classList.remove('hidden');
+            player?.querySelector('.btn-pause')?.classList.add('hidden');
+            const timeCurrent = player?.querySelector('.time-current');
+            if (timeCurrent) timeCurrent.textContent = '00:00';
+            activeAudio = null;
+          }
+        });
+      }
+
+      function initLayout() {
+        const isDesktop = window.innerWidth >= 768;
+        gsap.killTweensOf(["#panel-1", "#panel-2", "#panel-3"]);
+        
+        if (isDesktop) {
+          gsap.set("#panel-1", { x: "-10vw", width: "55vw", height: "100%", y: "0vh" });
+          gsap.set("#panel-2", { x: "0vw", width: "55vw", height: "100%", y: "0vh", left: "50%", xPercent: -50 });
+          gsap.set("#panel-3", { x: "10vw", width: "55vw", height: "100%", y: "0vh" });
+        } else {
+          gsap.set("#panel-1", { x: 0, y: "0vh", width: "100%", height: "36vh" });
+          gsap.set("#panel-2", { x: 0, y: "32vh", width: "100%", height: "36vh", left: 0, xPercent: 0 });
+          gsap.set("#panel-3", { x: 0, y: "64vh", width: "100%", height: "36vh" });
+        }
+      }
+
+      initLayout();
+      window.addEventListener('resize', () => { if (!isExpanded) initLayout(); });
+
+      panels.forEach(panel => {
+        panel.addEventListener('click', () => {
+          if (isExpanded) return;
+          isExpanded = true;
+          document.body.classList.add('is-expanded');
+          
+          const index = panel.getAttribute('data-index');
+          const isDesktop = window.innerWidth >= 768;
+          const activePlayer = panel.querySelector<HTMLElement>('.audio-player');
+          const activeHeader = panel.querySelector<HTMLElement>('.header-group');
+          const tl = gsap.timeline();
+
+          headerGroups.forEach(h => {
+            if (!panel.contains(h)) gsap.to(h, { opacity: 0, scale: 0.9, duration: 0.3 });
+          });
+
+          if (isDesktop) {
+            if (index === "1") {
+              tl.to("#panel-1", { x: "0vw", width: "140vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-2", { x: "100vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-3", { x: "132.5vw", duration: 0.7, ease: "power2.inOut" }, 0);
+            } else if (index === "2") {
+              tl.to("#panel-1", { x: "-100vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-2", { width: "100vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-3", { x: "100vw", duration: 0.7, ease: "power2.inOut" }, 0);
+            } else if (index === "3") {
+              tl.to("#panel-3", { x: "0vw", width: "140vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-2", { x: "-100vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-1", { x: "-132.5vw", duration: 0.7, ease: "power2.inOut" }, 0);
+            }
+          } else {
+            if (index === "1") {
+              tl.to("#panel-1", { y: "0vh", height: "104vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-2", { y: "100vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-3", { y: "132vh", duration: 0.7, ease: "power2.inOut" }, 0);
+            } else if (index === "2") {
+              tl.to("#panel-1", { y: "-36vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-2", { y: "-4vh", height: "108vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-3", { y: "100vh", duration: 0.7, ease: "power2.inOut" }, 0);
+            } else if (index === "3") {
+              tl.to("#panel-1", { y: "-68vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-2", { y: "-36vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-3", { y: "-4vh", height: "104vh", duration: 0.7, ease: "power2.inOut" }, 0);
+            }
+          }
+
+          // Responsive Gliding für kleine Displays (< 700px Höhe)
+          if (activeHeader) {
+            const shiftY = isDesktop 
+              ? (window.innerHeight > 1200 ? -100 : -70) 
+              : (window.innerHeight < 680 ? -55 : -85);
+
+            tl.to(activeHeader, { 
+              y: shiftY, 
+              duration: 0.5, 
+              ease: "power2.out" 
+            }, "-=0.2");
+          }
+
+          if (activePlayer) {
+            tl.to(activePlayer, {
+              opacity: 1,
+              y: 0,
+              duration: 0.45,
+              ease: "power2.out",
+              onStart: () => { activePlayer.style.pointerEvents = "auto"; }
+            }, "-=0.3");
+          }
+
+          const resetBottom = window.innerHeight < 680 ? "24px" : "40px";
+          tl.to(resetBtn, { bottom: resetBottom, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }, "-=0.2");
+        });
+      });
+
+      resetBtn.addEventListener('click', () => {
+        fadeOutActiveAudio();
+
+        audioPlayers.forEach(p => {
+          p.style.pointerEvents = "none";
+          gsap.to(p, { opacity: 0, y: 24, duration: 0.25 });
+        });
+
+        const tl = gsap.timeline({ 
+          onComplete: () => { 
+            isExpanded = false; 
+            document.body.classList.remove('is-expanded');
+          } 
+        });
+        
+        tl.to(resetBtn, { bottom: "-100px", opacity: 0, duration: 0.3, ease: "power2.in" });
+        
+        headerGroups.forEach(h => {
+          gsap.to(h, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" });
+        });
+
+        const isDesktop = window.innerWidth >= 768;
+
+        if (isDesktop) {
+          tl.to("#panel-1", { x: "-10vw", width: "55vw", duration: 0.6, ease: "power3.out" }, 0);
+          tl.to("#panel-2", { x: "0vw", width: "55vw", duration: 0.6, ease: "power3.out" }, 0);
+          tl.to("#panel-3", { x: "10vw", width: "55vw", duration: 0.6, ease: "power3.out" }, 0);
+        } else {
+          tl.to("#panel-1", { y: "0vh", height: "36vh", duration: 0.6, ease: "power3.out" }, 0);
+          tl.to("#panel-2", { y: "32vh", height: "36vh", duration: 0.6, ease: "power3.out" }, 0);
+          tl.to("#panel-3", { y: "64vh", height: "36vh", duration: 0.6, ease: "power3.out" }, 0);
+        }
+      });
+    </script>
+  </body>
 </html>
