@@ -5,7 +5,7 @@ export const tracks: TrackConfig[] = [
     id: 1,
     title: 'Track 01',
     subtitle: 'Industrial Beats',
-    audio: '/music/IHEIZ_01.mp3',
+    audio: '/music/IHEIZ_02.mp3',
     download: { mp3: '/music/IHEIZ_01.mp3', wav: '/music/IHEIZ_01.wav' },
     gradient: 'from-red-900 to-red-600',
     accentColor: '#f87171',

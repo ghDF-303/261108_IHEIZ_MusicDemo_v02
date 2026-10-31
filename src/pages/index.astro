@@ -1,7 +1,9 @@
 ---
+// src/pages/index.astro
 import '../styles/global.css';
 import { tracks } from '../data/tracks';
 import TrackPanel from '../components/TrackPanel.astro';
+import InfoOverlay from '../components/InfoOverlay.astro';
 ---
 
 <html lang="de">
@@ -19,6 +21,10 @@ import TrackPanel from '../components/TrackPanel.astro';
   <body class="bg-black text-white h-screen overflow-hidden select-none">
 
     <main class="relative w-full h-full overflow-hidden flex flex-col md:flex-row items-center">
+
+      <!-- HIER: Artist & Promo Info Overlay -->
+      <InfoOverlay />
+      
       {tracks.map((track) => (
         <TrackPanel track={track} />
       ))}
