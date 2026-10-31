@@ -1,4 +1,4 @@
-// src/types/track.ts
+import type { ImageMetadata } from 'astro';
 
 export interface DownloadOptions {
   mp3?: string;
@@ -14,6 +14,6 @@ export interface TrackConfig {
   gradient: string;
   accentColor: string;
   download: DownloadOptions;
-  bgImage?: string;    // z. B. '/images/bg-01.png' oder '/images/texture.svg'
-  bgOpacity?: number;  // Optional, z. B. 0.15 bis 0.3
+  bgImage?: ImageMetadata; // Typ für Astros Bild-Pipeline
+  bgOpacity?: number;
 }

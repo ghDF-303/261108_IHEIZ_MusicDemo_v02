@@ -1,5 +1,8 @@
 // src/data/tracks.ts
 import type { TrackConfig } from '../types/track';
+import bg1 from '../assets/images/bg-01.jpg'; // Kann ein hochauflösendes 4K-PNG sein!
+import bg2 from '../assets/images/bg-02.jpg';
+import bg3 from '../assets/images/bg-03.jpg';
 
 export const tracks: TrackConfig[] = [
   {
@@ -12,7 +15,7 @@ export const tracks: TrackConfig[] = [
     download: {
       wav: '/music/IHEIZ_02.mp3'
     },
-    bgImage: '/images/bg-01.jpg', // Optional: Hier dein Bild/SVG hinterlegen (liegt in /public)
+    bgImage: bg1,
     bgOpacity: 0.15,
   },
   {
@@ -25,7 +28,7 @@ export const tracks: TrackConfig[] = [
     download: {
       wav: '/music/IHEIZ_01.wav'
     },
-    bgImage: '/images/bg-02.jpg',
+    bgImage: bg2,
     bgOpacity: 0.18,
   },
   {
@@ -38,7 +41,7 @@ export const tracks: TrackConfig[] = [
     download: {
       mp3: '/music/IHEIZ_03.mp3'
     },
-    bgImage: '/images/bg-03.jpg',
+    bgImage: bg3,
     bgOpacity: 0.12,
   },
 ];
