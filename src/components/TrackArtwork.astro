@@ -1,0 +1,80 @@
+---
+// src/components/TrackArtwork.astro
+interface Props {
+  trackId: number;
+  accentColor: string;
+}
+
+const { trackId, accentColor } = Astro.props;
+const trackNumber = trackId.toString().padStart(2, '0');
+---
+
+<div class="track-artwork absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
+  
+  <!-- LAYER 1: BACKGROUND TYPO & GRID (Perfekt zentriert auf gleicher Höhe) -->
+  <div class="artwork-layer layer-bg absolute inset-0 flex items-center justify-center opacity-15 mix-blend-screen">
+    <span class="text-[28vw] md:text-[20vw] font-black tracking-tighter text-white select-none leading-none tabular-nums">
+      {trackNumber}
+    </span>
+  </div>
+
+  <!-- LAYER 2: MIDGROUND HUD & FREQUENCY RINGS (Technik) -->
+  <div class="artwork-layer layer-mid absolute inset-0 flex items-center justify-center opacity-25">
+    <svg class="w-[70vw] md:w-[35vw] h-auto max-w-[500px]" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Äußerer HUD-Ring -->
+      <circle cx="200" cy="200" r="160" stroke={accentColor} stroke-width="1.5" stroke-dasharray="6 8" class="opacity-40" />
+      <circle cx="200" cy="200" r="185" stroke="white" stroke-width="0.8" stroke-dasharray="40 180" class="opacity-30" />
+      
+      <!-- Fadenkreuz / Rasterlinien -->
+      <path d="M40 200H360M200 40V360" stroke="white" stroke-width="0.5" stroke-dasharray="4 4" class="opacity-20" />
+      
+      <!-- Track-spezifische HUD-Elemente -->
+      {trackId === 1 && (
+        <g stroke={accentColor} stroke-width="1.5" class="opacity-60">
+          <path d="M120 120L150 90H250L280 120V280L250 310H150L120 280Z" stroke-dasharray="10 5" />
+          <line x1="160" y1="200" x2="240" y2="200" stroke-width="3" />
+        </g>
+      )}
+      {trackId === 2 && (
+        <g stroke={accentColor} stroke-width="1.2" class="opacity-60">
+          <circle cx="200" cy="200" r="120" stroke-dasharray="15 30" />
+          <polygon points="200,90 295,255 105,255" stroke-dasharray="6 6" />
+        </g>
+      )}
+      {trackId === 3 && (
+        <g stroke={accentColor} stroke-width="2" class="opacity-50">
+          <circle cx="200" cy="200" r="130" stroke-dasharray="3 9" />
+          <rect x="140" y="140" width="120" height="120" stroke="white" stroke-width="1" stroke-dasharray="12 12" />
+        </g>
+      )}
+    </svg>
+  </div>
+
+  <!-- LAYER 3: FOREGROUND HERO EMBLEM (Character/Audio Focus) -->
+  <div class="artwork-layer layer-fg absolute inset-0 flex items-center justify-center opacity-30 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)]">
+    <svg class="w-[45vw] md:w-[22vw] h-auto max-w-[320px]" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {trackId === 1 && (
+        <g stroke={accentColor} stroke-width="2.5" fill="none">
+          <polygon points="100,20 120,70 175,50 145,100 190,130 135,140 140,195 100,160 60,195 65,140 10,130 55,100 25,50 80,70" />
+          <circle cx="100" cy="100" r="28" stroke="white" stroke-width="2" fill="rgba(0,0,0,0.5)" />
+        </g>
+      )}
+      {trackId === 2 && (
+        <g stroke={accentColor} stroke-width="2">
+          <polygon points="100,25 175,165 25,165" stroke-width="2.5" />
+          <polygon points="100,60 145,145 55,145" stroke="white" stroke-dasharray="4 4" />
+          <circle cx="100" cy="120" r="16" fill={accentColor} class="opacity-60" />
+        </g>
+      )}
+      {trackId === 3 && (
+        <g stroke={accentColor} stroke-width="2.5">
+          <polygon points="100,15 185,100 100,185 15,100" />
+          <line x1="30" y1="100" x2="170" y2="100" stroke="white" stroke-width="1.5" />
+          <line x1="100" y1="30" x2="100" y2="170" stroke="white" stroke-width="1.5" />
+          <circle cx="100" cy="100" r="20" stroke="white" stroke-width="2" stroke-dasharray="5 3" />
+        </g>
+      )}
+    </svg>
+  </div>
+
+</div>

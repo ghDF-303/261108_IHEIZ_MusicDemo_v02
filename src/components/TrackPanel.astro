@@ -1,6 +1,8 @@
 ---
+// src/components/TrackPanel.astro
 import type { TrackConfig } from '../types/track';
 import WaveformPlayer from './WaveformPlayer.astro';
+import TrackArtwork from './TrackArtwork.astro';
 
 interface Props {
   track: TrackConfig;
@@ -14,7 +16,10 @@ const { track } = Astro.props;
   data-index={track.id} 
   class={`sliding-panel absolute bg-gradient-to-br ${track.gradient} flex flex-col items-center justify-center ${track.id === 2 ? 'z-20' : 'z-10'}`}
 >
-  <div class="panel-content w-full h-full flex flex-col items-center justify-center relative px-4 sm:px-6 pointer-events-none">
+  <!-- ARTWORK-LAYER IM HINTERGRUND -->
+  <TrackArtwork trackId={track.id} accentColor={track.accentColor} />
+
+  <div class="panel-content w-full h-full flex flex-col items-center justify-center relative px-4 sm:px-6 pointer-events-none z-10">
     
     <div class="header-group text-center pointer-events-auto">
       <h2 class="text-3xl sm:text-5xl md:text-6xl 2xl:text-7xl font-black uppercase tracking-tighter transition-all">
@@ -33,6 +38,8 @@ const { track } = Astro.props;
 
   </div>
 </section>
+
+<!-- Scoped styles unverändert beibehalten -->
 
 <style>
   /* DESKTOP-SCHIENEN-SYSTEM (Vertikale Schrägen) */

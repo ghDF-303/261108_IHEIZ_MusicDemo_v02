@@ -24,7 +24,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
 
       <!-- HIER: Artist & Promo Info Overlay -->
       <InfoOverlay />
-      
+
       {tracks.map((track) => (
         <TrackPanel track={track} />
       ))}
@@ -40,7 +40,8 @@ import InfoOverlay from '../components/InfoOverlay.astro';
       </button>
     </main>
 
-    <script>
+
+<script>
       import { gsap } from "gsap";
 
       const resetBtn = document.querySelector<HTMLButtonElement>('#reset-btn');
@@ -51,6 +52,80 @@ import InfoOverlay from '../components/InfoOverlay.astro';
       let isExpanded = false;
 
       if (!resetBtn) throw new Error('#reset-btn fehlt im DOM');
+
+      // 1. ORGANISCHER SCHWEBEMODUS MIT ZUFALLSWERTEN PRO PANEL
+      const rnd = (min: number, max: number) => gsap.utils.random(min, max);
+
+      panels.forEach(panel => {
+        const mid = panel.querySelector<HTMLElement>('.layer-mid');
+        const fg = panel.querySelector<HTMLElement>('.layer-fg');
+
+        // LAYER 2: MIDGROUND HUD (Entkoppelte Achsen erzeugen elliptische Driftbahnen)
+        if (mid) {
+          // X-Drift
+          gsap.to(mid, {
+            x: rnd(-22, 22),
+            duration: rnd(4.8, 6.8),
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: rnd(0, 1.5)
+          });
+
+          // Y-Drift (andere Taktung als X)
+          gsap.to(mid, {
+            y: rnd(-16, 16),
+            duration: rnd(3.8, 5.4),
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: rnd(0, 1.2)
+          });
+
+          // Sanftes Taumeln / Drehen
+          gsap.to(mid, {
+            rotation: rnd(-7, 7),
+            duration: rnd(6.5, 9.0),
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            transformOrigin: "50% 50%"
+          });
+        }
+
+        // LAYER 3: FOREGROUND HERO EMBLEM (Schnellere Schwebung = Tiefenwirkung)
+        if (fg) {
+          // X-Drift
+          gsap.to(fg, {
+            x: rnd(-14, 14),
+            duration: rnd(3.6, 5.0),
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: rnd(0.2, 1.0)
+          });
+
+          // Y-Drift
+          gsap.to(fg, {
+            y: rnd(-18, 18),
+            duration: rnd(2.9, 4.2),
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: rnd(0, 0.8)
+          });
+
+          // Feiner Breathing-Scale
+          gsap.to(fg, {
+            scale: rnd(1.04, 1.08),
+            duration: rnd(3.0, 4.0),
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            transformOrigin: "50% 50%"
+          });
+        }
+      });
 
       function initLayout() {
         const isDesktop = window.innerWidth >= 768;
@@ -80,12 +155,34 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           const isDesktop = window.innerWidth >= 768;
           const activePlayer = panel.querySelector<HTMLElement>('.audio-player');
           const activeHeader = panel.querySelector<HTMLElement>('.header-group');
+          const activeArtwork = panel.querySelector<HTMLElement>('.track-artwork');
           const tl = gsap.timeline();
 
+          // Header anderer Panels ausblenden
           headerGroups.forEach(h => {
             if (!panel.contains(h)) gsap.to(h, { opacity: 0, scale: 0.9, duration: 0.3 });
           });
 
+          // Artworks anderer Panels ausblenden
+          panels.forEach(p => {
+            if (p !== panel) {
+              const otherArtwork = p.querySelector('.track-artwork');
+              if (otherArtwork) gsap.to(otherArtwork, { opacity: 0, duration: 0.4 });
+            }
+          });
+
+          // 2. ACTIVE ZOOM: Aktives Artwork fokussieren (die Schwebung läuft im Inneren flüssig weiter)
+          if (activeArtwork) {
+            tl.to(activeArtwork, {
+              scale: isDesktop ? 1.25 : 1.15,
+              opacity: 1,
+              y: isDesktop ? -20 : -10,
+              duration: 0.8,
+              ease: "power2.out"
+            }, 0);
+          }
+
+          // Schienen-Expansion
           if (isDesktop) {
             if (index === "1") {
               tl.to("#panel-1", { x: "0vw", width: "140vw", duration: 0.7, ease: "power2.inOut" }, 0);
@@ -162,6 +259,14 @@ import InfoOverlay from '../components/InfoOverlay.astro';
         
         headerGroups.forEach(h => {
           gsap.to(h, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" });
+        });
+
+        // 3. ARTWORKS ZURÜCKSETZEN
+        panels.forEach(p => {
+          const artwork = p.querySelector<HTMLElement>('.track-artwork');
+          if (artwork) {
+            gsap.to(artwork, { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
+          }
         });
 
         const isDesktop = window.innerWidth >= 768;
