@@ -22,7 +22,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
 
     <main class="relative w-full h-full overflow-hidden flex flex-col md:flex-row items-center">
 
-      <!-- HIER: Artist & Promo Info Overlay -->
+      <!-- Artist & Promo Info Overlay -->
       <InfoOverlay />
 
       {tracks.map((track) => (
@@ -40,8 +40,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
       </button>
     </main>
 
-
-<script>
+    <script>
       import { gsap } from "gsap";
 
       const resetBtn = document.querySelector<HTMLButtonElement>('#reset-btn');
@@ -57,8 +56,9 @@ import InfoOverlay from '../components/InfoOverlay.astro';
       const rnd = (min: number, max: number) => gsap.utils.random(min, max);
 
       panels.forEach(panel => {
-        const mid = panel.querySelector<HTMLElement>('.layer-mid');
-        const fg = panel.querySelector<HTMLElement>('.layer-fg');
+        // Selektoren synchronisiert mit TrackArtwork.astro (.hud-layer & .hero-layer)
+        const mid = panel.querySelector<HTMLElement>('.hud-layer, .layer-mid');
+        const fg = panel.querySelector<HTMLElement>('.hero-layer, .layer-fg');
 
         // LAYER 2: MIDGROUND HUD (Entkoppelte Achsen erzeugen elliptische Driftbahnen)
         if (mid) {
@@ -155,7 +155,8 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           const isDesktop = window.innerWidth >= 768;
           const activePlayer = panel.querySelector<HTMLElement>('.audio-player');
           const activeHeader = panel.querySelector<HTMLElement>('.header-group');
-          const activeArtwork = panel.querySelector<HTMLElement>('.track-artwork');
+          // Selektor synchronisiert (.track-artwork-container & .track-artwork)
+          const activeArtwork = panel.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
           const tl = gsap.timeline();
 
           // Header anderer Panels ausblenden
@@ -166,12 +167,12 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           // Artworks anderer Panels ausblenden
           panels.forEach(p => {
             if (p !== panel) {
-              const otherArtwork = p.querySelector('.track-artwork');
+              const otherArtwork = p.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
               if (otherArtwork) gsap.to(otherArtwork, { opacity: 0, duration: 0.4 });
             }
           });
 
-          // 2. ACTIVE ZOOM: Aktives Artwork fokussieren (die Schwebung läuft im Inneren flüssig weiter)
+          // 2. ACTIVE ZOOM: Aktives Artwork fokussieren
           if (activeArtwork) {
             tl.to(activeArtwork, {
               scale: isDesktop ? 1.25 : 1.15,
@@ -263,7 +264,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
 
         // 3. ARTWORKS ZURÜCKSETZEN
         panels.forEach(p => {
-          const artwork = p.querySelector<HTMLElement>('.track-artwork');
+          const artwork = p.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
           if (artwork) {
             gsap.to(artwork, { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
           }

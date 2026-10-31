@@ -14,11 +14,27 @@ const { track } = Astro.props;
 <section 
   id={`panel-${track.id}`} 
   data-index={track.id} 
-  class={`sliding-panel absolute bg-gradient-to-br ${track.gradient} flex flex-col items-center justify-center ${track.id === 2 ? 'z-20' : 'z-10'}`}
+  class={`sliding-panel absolute bg-gradient-to-br ${track.gradient} flex flex-col items-center justify-center overflow-hidden select-none ${track.id === 2 ? 'z-20' : 'z-10'}`}
+  style={`--track-accent: ${track.accentColor};`}
 >
-  <!-- ARTWORK-LAYER IM HINTERGRUND -->
+  <!-- OPTIONALER HINTERGRUNDBILD- / PATTERN-LAYER (PNG oder SVG) -->
+  {track.bgImage && (
+    <div
+      class="pointer-events-none absolute inset-0 z-0 bg-cover bg-center mix-blend-luminosity will-change-transform"
+      style={{
+        backgroundImage: `url(${track.bgImage})`,
+        opacity: track.bgOpacity ?? 0.15,
+      }}
+    />
+  )}
+
+  <!-- SUBTILE VIGNETTE FÜR KONTRAST -->
+  <div class="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.6)_100%)]" />
+
+  <!-- ARTWORK-LAYER IM HINTERGRUND (z-[2]) -->
   <TrackArtwork trackId={track.id} accentColor={track.accentColor} />
 
+  <!-- CONTENT & PLAYER LAYER (z-10) -->
   <div class="panel-content w-full h-full flex flex-col items-center justify-center relative px-4 sm:px-6 pointer-events-none z-10">
     
     <div class="header-group text-center pointer-events-auto">
@@ -38,8 +54,6 @@ const { track } = Astro.props;
 
   </div>
 </section>
-
-<!-- Scoped styles unverändert beibehalten -->
 
 <style>
   /* DESKTOP-SCHIENEN-SYSTEM (Vertikale Schrägen) */
