@@ -8,6 +8,8 @@ export interface DownloadOptions {
 
 export interface TrackConfig {
   id: number;
+  bgNumber?: string;
+  isFeatured?: boolean;
   title: string;
   subtitle: string;
   audio: string;

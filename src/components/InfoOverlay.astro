@@ -9,21 +9,30 @@
   aria-hidden="true"
 ></div>
 
-<!-- TRIGGER-BUTTON: Reines Symbol ohne Hintergrund mit Schatten für Kontrast -->
+<!-- TRIGGER-BUTTON (Z-Index 60, geschützt gegen Overlap) -->
 <button 
   id="info-trigger-btn" 
   type="button"
-  class="fixed top-4 left-4 md:top-6 md:left-6 z-50 p-2 text-white/90 hover:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] transition-colors cursor-pointer flex items-center justify-center select-none"
+  class="fixed top-2 left-2 md:top-3 md:left-3 z-[60] p-1 text-white hover:text-white/80 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] transition-colors cursor-pointer flex items-center justify-center select-none"
+  style="z-index: 60;"
   aria-label="Artist Information öffnen/schließen"
 >
-  <svg 
-    id="info-icon-plus" 
-    xmlns="http://www.w3.org/2000/svg" 
-    class="w-8 h-8 md:w-9 md:h-9 fill-current" 
-    viewBox="0 0 24 24"
+  <!-- WRAPPER: Nimmt die GSAP-Animationen stabil auf -->
+  <span 
+    id="info-icon-wrapper" 
+    class="inline-flex items-center justify-center w-8 h-8 md:w-9 md:h-9 will-change-transform"
   >
-    <path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"/>
-  </svg>
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      class="w-full h-full fill-current pointer-events-none" 
+      viewBox="0 0 24 24"
+      width="36"
+      height="36"
+      aria-hidden="true"
+    >
+      <path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"/>
+    </svg>
+  </span>
 </button>
 
 <!-- OVERLAY DRAWER -->
@@ -32,61 +41,87 @@
   class="fixed top-0 left-0 h-full z-40 bg-zinc-950/95 border-r border-white/10 text-white backdrop-blur-xl shadow-2xl flex flex-col justify-between overflow-hidden"
   aria-label="Artist Promo & Kontakt"
 >
-  <!-- SCROLLBARER INHALTSCONTAINER -->
-  <div class="info-content-box w-full md:w-[50vw] h-full overflow-y-auto px-6 pt-20 pb-10 md:px-12 md:pt-24 flex flex-col justify-between">
+  <!-- HAUPTCONTAINER: Auf mobilem Viewport auf 100dvh begrenzt mit Safe-Bottom-Padding -->
+  <div class="info-content-box w-full md:w-[50vw] h-[100dvh] md:h-full overflow-hidden px-6 pt-14 pb-[calc(1.75rem+env(safe-area-inset-bottom,0px))] md:px-12 md:pt-20 md:pb-8 flex flex-col justify-between">
     
-    <!-- TOP: ARTIST INFO -->
-    <div>
-      <!-- <div class="flex items-center gap-3">
-        <span class="inline-block w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
-        <span class="text-[11px] font-mono uppercase tracking-widest text-white/60">A&R Promo Material // 2026</span>
-      </div> -->
-
-      <h3 class="text-3xl md:text-6xl font-black uppercase tracking-tighter mt-3">
+    <!-- TOP: ARTIST HEADER -->
+    <div class="shrink-0 mb-2 md:mb-3">
+      <h3 class="text-3xl md:text-5xl font-black uppercase tracking-tighter">
         IHEIZ
       </h3>
-      <p class="text-xs md:text-sm font-bold uppercase tracking-widest text-white/70 mt-1">
+      <p class="text-xs md:text-sm font-bold uppercase tracking-widest text-white/70 mt-0.5">
         Techno
       </p>
+    </div>
 
-      <!-- BIO -->
-      <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p bio-tagline">
-        My passion for raw, minimalist 90<span style="text-transform: lowercase;">s</span>-style techno has been the core concept behind this project since the early 2000<span style="text-transform: lowercase;">s</span></p>
-      <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p">
-          My name is Ingo Beitz. I fell under the spell of electronic music back in 1985. I experienced the birth of Techno firsthand and have been actively producing within the genre since 1996. Before that, I released music under the alias <em>kAlte fArben</em>, dropping two albums, an EP, and numerous remixes rooted in heavy, uncompromising EBM and Industrial. In collaboration with Wolfgang Kaiser—who is still active today, primarily as Monococ—I also produced a series of Trance and Hard Trance vinyl records under various other pseudonyms.</p>
-      <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p">As IHEIZ (initially launched as Inge Heiz), I contributed several releases to INTOXIK during the golden era of netlabels. For Native Instruments’ launch of Traktor Pro 3, I produced a dedicated promotional track (<em>Schwarzlichthauch</em>), driven primarily by their Softsynth Absynth and the hybrid Hard-/Software Instrument KORE.</p>
-      <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p">Then, life happened.</p>
-      <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p">And now? I’m ready to go all-in. Neither IHEIZ nor kAlte fArben ever faded from my creative drive. The time has come to bring all those accumulated ideas to life. This passion for electronic music is something I’ll never shake—it is a part of who I am, and I burn for it.</p>
+    <!-- MITTE: BIO MIT LINKSBÜNDIGEM CUSTOM-SCROLLBAR (FLEX-1) -->
+    <div class="relative flex-1 min-h-0 my-2 flex">
+      <!-- SWIPER-STYLE SCROLLBAR AUF DER LINKEN SEITE -->
+      <div 
+        id="bio-scrollbar-track" 
+        class="absolute left-0 top-1 bottom-1 w-[2px] bg-white/15 rounded-full pointer-events-none transition-opacity duration-300 opacity-0 z-10"
+        aria-hidden="true"
+      >
+        <div 
+          id="bio-scrollbar-thumb" 
+          class="w-full bg-white/80 rounded-full will-change-transform"
+          style="height: 0px; transform: translateY(0px);"
+        ></div>
+      </div>
 
-      <!-- SPECS / FACTS -->
-      <div class="grid grid-cols-2 gap-3 mt-6 artist-info-table">
-        <div class="border border-white/50 p-3">
-          <p class="text-[14px] font-inter uppercase text-white/50 tracking-wider">BPM Range</p>
-          <p class="text-sm font-bold mt-0.5">In this Demo: 136 — 142</p>
+      <!-- SCROLL-CONTAINER (NATIVE SCROLLBARS VERSTECKT) -->
+      <div 
+        id="bio-scroll-container" 
+        class="w-full h-full overflow-y-auto pl-8 pr-2 space-y-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-text"
+      >
+        <p class="text-sm md:text-base text-white/90 leading-relaxed font-light bio-p bio-tagline">
+          My passion for raw, minimalist 90<span style="text-transform: lowercase;">s</span>-style techno has been the core concept behind this project since the early 2000<span style="text-transform: lowercase;">s</span>.
+        </p>
+        <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p">
+          My name is Ingo Beitz. I fell under the spell of electronic music back in 1985. I experienced the birth of Techno firsthand and have been actively producing within the genre since 1996. Before that, I released music under the alias <em>kAlte fArben</em>, dropping two albums, an EP, and numerous remixes rooted in heavy, uncompromising EBM and Industrial. In collaboration with Wolfgang Kaiser—who is still active today, primarily as Monococ—I also produced a series of Trance and Hard Trance vinyl records under various other pseudonyms.
+        </p>
+        <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p">
+          As IHEIZ (initially launched as Inge Heiz), I contributed several releases to INTOXIK during the golden era of netlabels. For Native Instruments’ launch of Traktor Pro 3, I produced a dedicated promotional track (<em>Schwarzlichthauch</em>), driven primarily by their Softsynth Absynth and the hybrid Hard-/Software Instrument KORE.
+        </p>
+        <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p">
+          Then, life happened.
+        </p>
+        <p class="text-sm md:text-base text-white/80 leading-relaxed font-light bio-p">
+          And now? I’m ready to go all-in. Neither IHEIZ nor kAlte fArben ever faded from my creative drive. The time has come to bring all those accumulated ideas to life. This passion for electronic music is something I’ll never shake—it is a part of who I am, and I burn for it.
+        </p>
+      </div>
+    </div>
+
+    <!-- UNTEN: SPECS / FACTS -->
+    <div class="shrink-0 mt-3">
+      <div class="grid grid-cols-2 gap-2.5 artist-info-table">
+        <div class="border border-white/30 p-2.5 bg-black/20">
+          <p class="text-[11px] md:text-xs font-mono uppercase text-white/50 tracking-wider">BPM Range</p>
+          <p class="text-xs md:text-sm font-bold mt-0.5">In this Demo: 136 — 142</p>
         </div>
-        <div class="border border-white/50 p-3">
-          <p class="text-[14px] font-inter uppercase text-white/50 tracking-wider">Licensing</p>
-          <p class="text-sm font-bold mt-0.5">Release Ready</p>
+        <div class="border border-white/30 p-2.5 bg-black/20">
+          <p class="text-[11px] md:text-xs font-mono uppercase text-white/50 tracking-wider">Licensing</p>
+          <p class="text-xs md:text-sm font-bold mt-0.5">Release Ready</p>
         </div>
-        <div class="border border-white/50 p-3">
-          <p class="text-[14px] font-inter uppercase text-white/50 tracking-wider">DAW / Hardware</p>
-          <p class="text-sm font-bold mt-0.5">Ableton / Cubase / TB-303 / MASCHINE / Elektrons / Pedals / Analogue and Digital Gear etc.</p>
+        <div class="border border-white/30 p-2.5 bg-black/20">
+          <p class="text-[11px] md:text-xs font-mono uppercase text-white/50 tracking-wider">DAW / Hardware</p>
+          <p class="text-xs md:text-sm font-bold mt-0.5 line-clamp-2">Ableton / Cubase / TB-303 / MASCHINE / Elektrons / Outboard</p>
         </div>
-        <div class="border border-white/50 p-3">
-          <p class="text-[14px] font-inter uppercase text-white/50 tracking-wider">Location</p>
-          <p class="text-sm font-bold mt-0.5">Moved from Berlin to the Outbacks near WÜ, DE</p>
+        <div class="border border-white/30 p-2.5 bg-black/20">
+          <p class="text-[11px] md:text-xs font-mono uppercase text-white/50 tracking-wider">Location</p>
+          <p class="text-xs md:text-sm font-bold mt-0.5">Moved from Berlin to Outbacks (WÜ, DE)</p>
         </div>
       </div>
     </div>
 
     <!-- BOTTOM: DIRECT CONTACT -->
-    <div class="mt-8 pt-6 border-t border-white/10">
-      <p class="text-xs font-inter uppercase tracking-widest text-white/50 mb-3">Contact</p>
+    <div class="shrink-0 mt-3 pt-3 md:mt-4 md:pt-4 border-t border-white/10">
+      <p class="text-[11px] font-mono uppercase tracking-widest text-white/50 mb-2">Contact</p>
       
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
         <a 
           href="mailto:info@iheiz.com" 
-          class="parallelogram-btn bg-white hover:bg-white/90 text-black font-black text-xs uppercase tracking-wider px-6 py-3 transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer shadow-lg"
+          class="parallelogram-btn bg-white hover:bg-white/90 text-black font-black text-xs uppercase tracking-wider px-5 py-2.5 transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer shadow-lg"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -98,7 +133,7 @@
           href="https://soundcloud.com/iheiz-shares-some-tunes" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="parallelogram-btn bg-white/10 hover:bg-white text-white hover:text-black font-black text-xs uppercase tracking-wider px-5 py-3 transition-all flex items-center gap-1.5 cursor-pointer"
+          class="parallelogram-btn bg-white/10 hover:bg-white text-white hover:text-black font-black text-xs uppercase tracking-wider px-4 py-2.5 transition-all flex items-center gap-1.5 cursor-pointer"
         >
           More Stuff on SoundCloud
         </a>
@@ -114,7 +149,7 @@
     -webkit-clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
   }
 
-  /* DESKTOP-SCHIENEN-WINKEL (Initialer Ruhezustand via CSS verhindert Flashen) */
+  /* DESKTOP-SCHIENEN-WINKEL */
   @media (min-width: 768px) {
     #info-overlay {
       width: calc(50vw + 15vw);
@@ -125,14 +160,14 @@
     }
   }
 
-  /* MOBILE-SCHIENEN-WINKEL (Unterkante 4vh geschrägt) */
+  /* MOBILE-SCHIENEN-WINKEL */
   @media (max-width: 767px) {
     #info-overlay {
       width: 100%;
-      height: 104vh;
+      height: calc(100dvh + 4vh);
       clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
       -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
-      transform: translateY(-104%);
+      transform: translateY(-106%);
       will-change: transform;
     }
   }
@@ -143,19 +178,23 @@
 
   const overlay = document.querySelector<HTMLElement>('#info-overlay');
   const triggerBtn = document.querySelector<HTMLButtonElement>('#info-trigger-btn');
+  const iconWrapper = document.querySelector<HTMLElement>('#info-icon-wrapper');
   const backdrop = document.querySelector<HTMLElement>('#info-backdrop');
-  const iconPlus = document.querySelector<SVGElement>('#info-icon-plus');
 
-  if (!overlay || !triggerBtn || !backdrop || !iconPlus) {
+  const bioContainer = document.querySelector<HTMLElement>('#bio-scroll-container');
+  const scrollTrack = document.querySelector<HTMLElement>('#bio-scrollbar-track');
+  const scrollThumb = document.querySelector<HTMLElement>('#bio-scrollbar-thumb');
+
+  if (!overlay || !triggerBtn || !iconWrapper || !backdrop || !bioContainer || !scrollTrack || !scrollThumb) {
     throw new Error('InfoOverlay: Erforderliche DOM-Elemente fehlen.');
   }
 
   let isOpen = false;
 
-  // Transform-Origin im Zentrum des SVGs für gleichmäßiges Skalieren
-  gsap.set(iconPlus, { transformOrigin: "50% 50%" });
+  // Stabile Transformation auf dem HTML-Wrapper
+  gsap.set(iconWrapper, { transformOrigin: "50% 50%" });
 
-  // HERZSCHLAG-PULS TIMELINE: Doppelschlag (lub-dub), dann 5s Pause
+  // HERZSCHLAG-PULS TIMELINE AUF DEM WRAPPER
   const heartbeatTl = gsap.timeline({
     repeat: -1,
     repeatDelay: 5,
@@ -163,18 +202,53 @@
   });
 
   heartbeatTl
-    .to(iconPlus, { scale: 1.25, duration: 0.12, ease: "power1.out" })
-    .to(iconPlus, { scale: 1.05, duration: 0.08, ease: "power1.in" })
-    .to(iconPlus, { scale: 1.35, duration: 0.14, ease: "power1.out" })
-    .to(iconPlus, { scale: 1.0, duration: 0.25, ease: "power2.inOut" });
+    .to(iconWrapper, { scale: 1.25, duration: 0.12, ease: "power1.out" })
+    .to(iconWrapper, { scale: 1.05, duration: 0.08, ease: "power1.in" })
+    .to(iconWrapper, { scale: 1.35, duration: 0.14, ease: "power1.out" })
+    .to(iconWrapper, { scale: 1.0, duration: 0.25, ease: "power2.inOut" });
 
-  // Mathematisch exakte Positionen in Pixeln für GSAP
+  // --- CUSTOM SCROLLBAR LOGIK ---
+  function updateScrollbar() {
+    if (!bioContainer || !scrollTrack || !scrollThumb) return;
+
+    const clientHeight = bioContainer.clientHeight;
+    const scrollHeight = bioContainer.scrollHeight;
+    const scrollTop = bioContainer.scrollTop;
+
+    if (scrollHeight <= clientHeight + 2) {
+      scrollTrack.style.opacity = '0';
+      return;
+    }
+
+    scrollTrack.style.opacity = '1';
+
+    const trackHeight = scrollTrack.clientHeight;
+    const ratio = clientHeight / scrollHeight;
+    const thumbHeight = Math.max(trackHeight * ratio, 20);
+    const maxScroll = scrollHeight - clientHeight;
+    const maxThumbTravel = trackHeight - thumbHeight;
+
+    const scrollFraction = maxScroll > 0 ? scrollTop / maxScroll : 0;
+    const thumbTop = scrollFraction * maxThumbTravel;
+
+    scrollThumb.style.height = `${thumbHeight}px`;
+    scrollThumb.style.transform = `translateY(${thumbTop}px)`;
+  }
+
+  bioContainer.addEventListener('scroll', updateScrollbar, { passive: true });
+  
+  const resizeObserver = new ResizeObserver(() => {
+    updateScrollbar();
+  });
+  resizeObserver.observe(bioContainer);
+
+  // --- DRAWER POSITIONIERUNG ---
   function getClosedX(): number {
     return -(window.innerWidth * 0.65) + 90;
   }
 
   function getClosedY(): number {
-    return -(window.innerHeight * 1.05);
+    return -(window.innerHeight * 1.08);
   }
 
   function initLayout() {
@@ -190,6 +264,8 @@
     } else {
       gsap.set(overlay, { x: 0, y: 0 });
     }
+
+    updateScrollbar();
   }
 
   initLayout();
@@ -198,13 +274,17 @@
   function openOverlay() {
     isOpen = true;
     heartbeatTl.pause();
-    gsap.killTweensOf(iconPlus);
+    gsap.killTweensOf(iconWrapper);
 
     const isDesktop = window.innerWidth >= 768;
-    const tl = gsap.timeline();
+    const tl = gsap.timeline({
+      onComplete: () => {
+        updateScrollbar();
+      }
+    });
 
     tl.to(backdrop, { opacity: 1, pointerEvents: "auto", duration: 0.4 }, 0)
-      .to(iconPlus, { rotation: 45, scale: 1, duration: 0.35, ease: "back.out(1.7)" }, 0);
+      .to(iconWrapper, { rotation: 45, scale: 1, duration: 0.35, ease: "back.out(1.7)" }, 0);
 
     if (isDesktop) {
       tl.to(overlay, { x: 0, duration: 0.6, ease: "power3.inOut" }, 0);
@@ -218,13 +298,12 @@
     const isDesktop = window.innerWidth >= 768;
     const tl = gsap.timeline({
       onComplete: () => {
-        // Schlägt beim Zuklappen sofort wieder an und läuft im 5s-Loop weiter
         heartbeatTl.play(0);
       }
     });
 
     tl.to(backdrop, { opacity: 0, pointerEvents: "none", duration: 0.3 }, 0)
-      .to(iconPlus, { rotation: 0, scale: 1, duration: 0.35, ease: "power2.inOut" }, 0);
+      .to(iconWrapper, { rotation: 0, scale: 1, duration: 0.35, ease: "power2.inOut" }, 0);
 
     if (isDesktop) {
       tl.to(overlay, { x: getClosedX(), duration: 0.5, ease: "power3.inOut" }, 0);

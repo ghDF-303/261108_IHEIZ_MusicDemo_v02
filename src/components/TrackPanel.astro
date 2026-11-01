@@ -10,6 +10,10 @@ interface Props {
 }
 
 const { track } = Astro.props;
+
+// Im Frontmatter von TrackPanel.astro:
+// const isFeatured = track.id === 2;
+const isFeatured = Boolean(track.isFeatured);
 ---
 
 <section 
@@ -37,15 +41,34 @@ const { track } = Astro.props;
   <div class="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.65)_100%)]" />
 
   <!-- ARTWORK-LAYER IM HINTERGRUND -->
-  <TrackArtwork trackId={track.id} accentColor={track.accentColor} />
+  <TrackArtwork
+    trackId={track.id}
+    accentColor={track.accentColor}
+    bgNumber={track.bgNumber}
+    isFeatured={isFeatured}
+  />
 
-  <!-- CONTENT & PLAYER LAYER -->
+<!-- CONTENT & PLAYER LAYER (Bereits vertikal & horizontal zentriert) -->
   <div class="panel-content w-full h-full flex flex-col items-center justify-center relative px-4 sm:px-6 pointer-events-none z-10">
     <div class="header-group text-center pointer-events-auto">
-      <h2 class="text-3xl sm:text-5xl md:text-6xl 2xl:text-7xl font-black uppercase tracking-tighter transition-all">
+      <h2 
+        class:list={[
+          'font-black uppercase tracking-tighter transition-all',
+          isFeatured 
+            ? 'text-4xl sm:text-6xl md:text-7xl 2xl:text-8xl' 
+            : 'text-3xl sm:text-5xl md:text-6xl 2xl:text-7xl'
+        ]}
+      >
         {track.title}
       </h2>
-      <p class="text-xs sm:text-sm 2xl:text-base font-bold uppercase tracking-widest text-white/80 mt-1 sm:mt-2">
+      <p 
+        class:list={[
+          'font-bold uppercase tracking-widest text-white/80 transition-all',
+          isFeatured 
+            ? 'text-sm sm:text-base 2xl:text-lg mt-1.5 sm:mt-2.5' 
+            : 'text-xs sm:text-sm 2xl:text-base mt-1 sm:mt-2'
+        ]}
+      >
         {track.subtitle}
       </p>
     </div>

@@ -7,6 +7,7 @@ import bg3 from '../assets/images/bg-03.jpg';
 export const tracks: TrackConfig[] = [
   {
     id: 1,
+    bgNumber: 'A2',
     title: 'Analogue Session',
     subtitle: '138 BPM / Techno',
     audio: '/music/IHEIZ_02.mp3',
@@ -20,6 +21,8 @@ export const tracks: TrackConfig[] = [
   },
   {
     id: 2,
+    bgNumber: 'A1',
+    isFeatured: true,
     title: 'Traditions',
     subtitle: '142 BPM / Hypnotic / Raw Techno',
     audio: '/music/IHEIZ_01.wav',
@@ -33,6 +36,7 @@ export const tracks: TrackConfig[] = [
   },
   {
     id: 3,
+    bgNumber: 'B',
     title: 'Deep Pulsar',
     subtitle: '138 BPM / Techno',
     audio: '/music/IHEIZ_03.mp3',
