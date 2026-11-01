@@ -17,3 +17,10 @@ export interface TrackConfig {
   bgImage?: ImageMetadata; // Typ für Astros Bild-Pipeline
   bgOpacity?: number;
 }
+
+export interface TrackArtworkProps {
+  trackNumber: string;
+  trackId: string;
+  accentColor: string;
+  title: string;
+}

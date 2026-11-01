@@ -1,115 +1,46 @@
 ---
-// src/components/TrackArtwork.astro
+import HudLayer from './artworks/HudLayer.astro';
+import HeroLayer from './artworks/HeroLayer.astro';
+
 interface Props {
   trackId: number;
   accentColor: string;
 }
 
 const { trackId, accentColor } = Astro.props;
-
-// Formatierung für zweistellige Tabular-Nummern (01, 02, 03)
 const formattedNumber = trackId.toString().padStart(2, '0');
 ---
 
-<div class="track-artwork-container pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden select-none z-[2]">
-  
-  <!-- ========================================== -->
-  <!-- LAYER 1 (BG): Große Nummer im ZZZ-Typo-Stil -->
-  <!-- ========================================== -->
+<div
+  class="track-artwork-container pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden select-none z-[2]"
+  style={`--artwork-color: ${accentColor};`}
+>
+  <!-- LAYER 1 (BG): Große Nummer -->
   <span
-    class="bg-track-number pointer-events-none absolute font-mono font-black tabular-nums select-none leading-none opacity-[0.07] transition-transform duration-700 ease-out will-change-transform"
-    style={`color: ${accentColor};`}
+    class="bg-track-number pointer-events-none absolute font-['Inter'] font-black select-none leading-none opacity-15 transition-transform duration-700 ease-out will-change-transform text-[var(--artwork-color)]"
   >
     {formattedNumber}
   </span>
 
-  <!-- ========================================== -->
-  <!-- LAYER 2 (MID): HUD-Ringe & Fadenkreuze     -->
-  <!-- Selektor .hud-layer für GSAP-Kurve 1       -->
-  <!-- ========================================== -->
-  <div class="hud-layer pointer-events-none absolute inset-0 flex items-center justify-center will-change-transform">
-    <svg 
-      class="h-[280px] w-[280px] sm:h-[380px] sm:w-[380px] md:h-[480px] md:w-[480px] 2xl:h-[580px] 2xl:w-[580px] opacity-35" 
-      viewBox="0 0 500 500" 
-      fill="none"
-    >
-      <!-- Äußerer Segment-Ring -->
-      <circle 
-        cx="250" cy="250" r="230" 
-        stroke={accentColor} 
-        stroke-width="1.5" 
-        stroke-dasharray="6 14" 
-      />
-      <!-- Innerer Führungsring -->
-      <circle 
-        cx="250" cy="250" r="170" 
-        stroke={accentColor} 
-        stroke-width="0.75" 
-        stroke-opacity="0.6" 
-      />
-      <!-- Fadenkreuz-Markierungen -->
-      <path 
-        d="M 250 10 L 250 40 M 250 460 L 250 490 M 10 250 L 40 250 M 460 250 L 490 250" 
-        stroke={accentColor} 
-        stroke-width="2" 
-        stroke-linecap="square"
-      />
-      <!-- Diagonale Hilfslinien -->
-      <path 
-        d="M 120 120 L 140 140 M 360 360 L 380 380 M 380 120 L 360 140 M 120 380 L 140 360" 
-        stroke={accentColor} 
-        stroke-width="1.5" 
-        stroke-opacity="0.4"
-      />
-    </svg>
+  <!-- LAYER 2 (MID): HUD Layer (GSAP Transform Hook) -->
+  <div
+    class="hud-layer pointer-events-none absolute inset-0 flex items-center justify-center will-change-transform text-[var(--artwork-color)]"
+  >
+    <HudLayer trackId={trackId} />
   </div>
 
-  <!-- ========================================== -->
-  <!-- LAYER 3 (HERO): Spezifische Hero-Embleme   -->
-  <!-- Selektor .hero-layer für GSAP-Kurve 2      -->
-  <!-- ========================================== -->
-  <div class="hero-layer pointer-events-none relative z-10 flex items-center justify-center will-change-transform">
-    <div 
-      class="h-44 w-44 sm:h-56 sm:w-56 md:h-72 md:w-72 2xl:h-80 2xl:w-80 transition-transform duration-500 will-change-transform"
-      style={`filter: drop-shadow(0 0 25px ${accentColor}40); color: ${accentColor};`}
-    >
-      {/* Track 1: Diamond Hazard Emblem */}
-      {trackId === 1 && (
-        <svg viewBox="0 0 200 200" class="h-full w-full fill-none">
-          <polygon points="100,15 185,100 100,185 15,100" stroke="currentColor" stroke-width="3" />
-          <polygon points="100,35 165,100 100,165 35,100" stroke="currentColor" stroke-width="1" stroke-dasharray="4 6" opacity="0.6" />
-          <line x1="60" y1="100" x2="140" y2="100" stroke="currentColor" stroke-width="4" />
-          <line x1="100" y1="60" x2="100" y2="140" stroke="currentColor" stroke-width="4" />
-          <rect x="92" y="92" width="16" height="16" fill="currentColor" />
-        </svg>
-      )}
-
-      {/* Track 2: Cyber Shuriken / Core */}
-      {trackId === 2 && (
-        <svg viewBox="0 0 200 200" class="h-full w-full fill-none">
-          <circle cx="100" cy="100" r="85" stroke="currentColor" stroke-width="2" stroke-dasharray="12 8" />
-          <polygon points="100,20 125,75 180,100 125,125 100,180 75,125 20,100 75,75" stroke="currentColor" stroke-width="3" />
-          <circle cx="100" cy="100" r="28" stroke="currentColor" stroke-width="4" />
-          <circle cx="100" cy="100" r="10" fill="currentColor" />
-        </svg>
-      )}
-
-      {/* Track 3: Heavy Industrial Hexagon */}
-      {trackId === 3 && (
-        <svg viewBox="0 0 200 200" class="h-full w-full fill-none">
-          <polygon points="100,15 178,60 178,140 100,185 22,140 22,60" stroke="currentColor" stroke-width="3.5" />
-          <polygon points="100,32 162,68 162,132 100,168 38,132 38,68" stroke="currentColor" stroke-width="1" opacity="0.5" />
-          <path d="M 55 75 L 145 125 M 55 125 L 145 75" stroke="currentColor" stroke-width="3" stroke-linecap="square" />
-          <circle cx="100" cy="100" r="18" fill="currentColor" />
-        </svg>
-      )}
-    </div>
+  <!-- LAYER 3 (HERO): Emblem Layer (GSAP Transform Hook) -->
+  <div
+    class="hero-layer pointer-events-none relative z-10 flex items-center justify-center will-change-transform text-[var(--artwork-color)]"
+    style={`filter: drop-shadow(0 0 25px ${accentColor}40);`}
+  >
+    <HeroLayer trackId={trackId} />
   </div>
-
 </div>
 
 <style>
   .bg-track-number {
+    font-family: 'Inter';
     font-size: clamp(14rem, 24vw, 36rem);
     user-select: none;
     -webkit-user-select: none;

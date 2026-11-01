@@ -1,0 +1,110 @@
+---
+interface Props {
+  trackId: number;
+  class?: string;
+}
+
+const { trackId, class: className = '' } = Astro.props;
+---
+
+<div
+  class:list={[
+    'h-44 w-44 sm:h-56 sm:w-56 md:h-72 md:w-72 2xl:h-80 2xl:w-80',
+    'transition-transform duration-500 will-change-transform pointer-events-none select-none',
+    className
+  ]}
+  aria-hidden="true"
+>
+  {trackId === 1 && (
+    <svg viewBox="0 0 200 200" fill="none" class="h-full w-full">
+      <polygon
+        points="100,15 185,100 100,185 15,100"
+        stroke="currentColor"
+        stroke-width="3"
+        vector-effect="non-scaling-stroke"
+      />
+      <polygon
+        points="100,35 165,100 100,165 35,100"
+        stroke="currentColor"
+        stroke-width="1"
+        stroke-dasharray="4 6"
+        opacity="0.6"
+        vector-effect="non-scaling-stroke"
+      />
+      <line
+        x1="60"
+        y1="100"
+        x2="140"
+        y2="100"
+        stroke="currentColor"
+        stroke-width="4"
+        vector-effect="non-scaling-stroke"
+      />
+      <line
+        x1="100"
+        y1="60"
+        x2="100"
+        y2="140"
+        stroke="currentColor"
+        stroke-width="4"
+        vector-effect="non-scaling-stroke"
+      />
+      <rect x="92" y="92" width="16" height="16" fill="currentColor" />
+    </svg>
+  )}
+
+  {trackId === 2 && (
+    <svg viewBox="0 0 200 200" fill="none" class="h-full w-full">
+      <circle
+        cx="100"
+        cy="100"
+        r="85"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-dasharray="12 8"
+        vector-effect="non-scaling-stroke"
+      />
+      <polygon
+        points="100,20 125,75 180,100 125,125 100,180 75,125 20,100 75,75"
+        stroke="currentColor"
+        stroke-width="3"
+        vector-effect="non-scaling-stroke"
+      />
+      <circle
+        cx="100"
+        cy="100"
+        r="28"
+        stroke="currentColor"
+        stroke-width="4"
+        vector-effect="non-scaling-stroke"
+      />
+      <circle cx="100" cy="100" r="10" fill="currentColor" />
+    </svg>
+  )}
+
+  {trackId === 3 && (
+    <svg viewBox="0 0 200 200" fill="none" class="h-full w-full">
+      <polygon
+        points="100,15 178,60 178,140 100,185 22,140 22,60"
+        stroke="currentColor"
+        stroke-width="3.5"
+        vector-effect="non-scaling-stroke"
+      />
+      <polygon
+        points="100,32 162,68 162,132 100,168 38,132 38,68"
+        stroke="currentColor"
+        stroke-width="1"
+        opacity="0.5"
+        vector-effect="non-scaling-stroke"
+      />
+      <path
+        d="M 55 75 L 145 125 M 55 125 L 145 75"
+        stroke="currentColor"
+        stroke-width="3"
+        stroke-linecap="square"
+        vector-effect="non-scaling-stroke"
+      />
+      <circle cx="100" cy="100" r="18" fill="currentColor" />
+    </svg>
+  )}
+</div>

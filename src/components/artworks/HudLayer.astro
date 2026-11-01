@@ -1,0 +1,102 @@
+---
+interface Props {
+  trackId?: number;
+  class?: string;
+}
+
+const { trackId, class: className = '' } = Astro.props;
+
+// Gemeinsame Basisklassen für alle HUD-Varianten (garantieren Layout-Stabilität)
+const baseSvgClasses = [
+  'h-[280px] w-[280px] sm:h-[380px] sm:w-[380px] md:h-[480px] md:w-[480px] 2xl:h-[580px] 2xl:w-[580px]',
+  'opacity-35 pointer-events-none select-none',
+  className,
+];
+---
+
+{/* 1. Direkte Slot-Überschreibung (höchste Priorität) */}
+{Astro.slots.has('default') ? (
+  <div class:list={baseSvgClasses}>
+    <slot />
+  </div>
+) : (
+  <>
+    {/* 2. Optionale Track-spezifische HUDs */}
+    {trackId === 2 ? (
+      /* Beispiel: Individuelles HUD für Track 2 (Hexagon-Matrix / Grid) */
+      <svg
+        viewBox="0 0 500 500"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        class:list={baseSvgClasses}
+        aria-hidden="true"
+      >
+        <polygon
+          points="250,30 440,140 440,360 250,470 60,360 60,140"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-dasharray="8 8"
+          vector-effect="non-scaling-stroke"
+        />
+        <circle
+          cx="250"
+          cy="250"
+          r="190"
+          stroke="currentColor"
+          stroke-width="1"
+          stroke-opacity="0.5"
+          vector-effect="non-scaling-stroke"
+        />
+        <path
+          d="M 50 250 H 450 M 250 50 V 450"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-opacity="0.3"
+          vector-effect="non-scaling-stroke"
+        />
+      </svg>
+    ) : (
+      /* 3. DEFAULT-FALLBACK (Track 1, 3 und alle zukünftigen Tracks ohne eigenes SVG) */
+      <svg
+        viewBox="0 0 500 500"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        class:list={baseSvgClasses}
+        aria-hidden="true"
+      >
+        <circle
+          cx="250"
+          cy="250"
+          r="230"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-dasharray="6 14"
+          vector-effect="non-scaling-stroke"
+        />
+        <circle
+          cx="250"
+          cy="250"
+          r="170"
+          stroke="currentColor"
+          stroke-width="0.75"
+          stroke-opacity="0.6"
+          vector-effect="non-scaling-stroke"
+        />
+        <path
+          d="M 250 10 L 250 40 M 250 460 L 250 490 M 10 250 L 40 250 M 460 250 L 490 250"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="square"
+          vector-effect="non-scaling-stroke"
+        />
+        <path
+          d="M 120 120 L 140 140 M 360 360 L 380 380 M 380 120 L 360 140 M 120 380 L 140 360"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-opacity="0.4"
+          vector-effect="non-scaling-stroke"
+        />
+      </svg>
+    )}
+  </>
+)}
