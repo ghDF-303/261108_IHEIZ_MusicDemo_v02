@@ -1,0 +1,134 @@
+---
+// src/components/Preloader.astro
+interface Props {
+  demoTitle?: string;
+}
+
+const { demoTitle = 'A&R Promo Selection' } = Astro.props;
+---
+
+<div
+  id="app-preloader"
+  class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505] text-white select-none isolate"
+  aria-busy="true"
+  aria-label="Lade Promo Material"
+>
+  <div class="preloader-content flex flex-col items-center text-center px-4 will-change-transform">
+    <!-- GROSSER TITEL -->
+    <h1 class="text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tighter leading-none">
+      IHEIZ
+    </h1>
+
+    <!-- SUBTITLE (DEMO TITLE) -->
+    <p class="text-sm sm:text-base md:text-lg font-bold uppercase tracking-widest text-white/80 mt-3 sm:mt-4">
+      {demoTitle}
+    </p>
+
+    <!-- KLEINE KENNZEICHNUNG -->
+    <span class="text-[10px] sm:text-xs font-mono uppercase tracking-[0.3em] text-white/40 mt-1">
+      Demo
+    </span>
+
+    <!-- ROTIERENDES HUD-SPINNER-SVG -->
+    <div class="mt-8 sm:mt-10 relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+      <!-- Äußerer, segmentierter Tech-Ring -->
+      <svg
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-full h-full animate-[spin_2s_linear_infinite]"
+        aria-hidden="true"
+      >
+        <circle
+          cx="50"
+          cy="50"
+          r="44"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-dasharray="70 40 20 40"
+          class="text-white/30"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r="44"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-dasharray="30 180"
+          stroke-linecap="square"
+          class="text-white"
+        />
+      </svg>
+
+      <!-- Innerer gegenläufiger Kern -->
+      <svg
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        class="absolute inset-2 w-auto h-auto animate-[spin_1.2s_linear_infinite_reverse]"
+        aria-hidden="true"
+      >
+        <polygon
+          points="50,20 76,65 24,65"
+          stroke="currentColor"
+          stroke-width="2"
+          class="text-white/60"
+        />
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { gsap } from 'gsap';
+
+  const preloader = document.querySelector<HTMLElement>('#app-preloader');
+  const content = document.querySelector<HTMLElement>('.preloader-content');
+
+  // 1. Schriften abwarten
+  const fontsPromise = 'fonts' in document ? document.fonts.ready : Promise.resolve();
+
+  // 2. Initial im DOM vorhandene Bilder abwarten
+  const images = Array.from(document.images);
+  const imagesPromise = Promise.all(
+    images.map((img) => {
+      if (img.complete) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        img.addEventListener('load', () => resolve(), { once: true });
+        img.addEventListener('error', () => resolve(), { once: true });
+      });
+    })
+  );
+
+  // 3. Mindestanzeige (verhindert unruhiges Aufflackern bei schnellem Cache)
+  const minDelayPromise = new Promise<void>((resolve) => setTimeout(resolve, 1000));
+
+  // 4. Lifecycle ausführen
+  Promise.all([fontsPromise, imagesPromise, minDelayPromise]).then(() => {
+    if (!preloader || !content) return;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        preloader.style.display = 'none';
+        preloader.setAttribute('aria-busy', 'false');
+        // Signal für index.astro (z. B. für Schienen-Intro-Tween)
+        window.dispatchEvent(new CustomEvent('app:ready'));
+      }
+    });
+
+    tl.to(content, {
+      y: -20,
+      opacity: 0,
+      duration: 0.45,
+      ease: 'power2.in'
+    }).to(
+      preloader,
+      {
+        opacity: 0,
+        duration: 0.55,
+        ease: 'power2.out'
+      },
+      '-=0.15'
+    );
+  });
+</script>
