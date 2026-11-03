@@ -204,11 +204,23 @@ const { audioUrl, accentColor, download = false } = Astro.props;
 
     let currentPeaks: number[] = [];
     let isDragging = false;
+    let peaksPromise: Promise<number[]> | undefined;
 
-    extractPeaks(audioUrl, BARS_COUNT).then(peaks => {
-      currentPeaks = peaks;
-      drawWaveform(canvas, currentPeaks, 0, accent);
-    });
+    const loadPeaks = () => {
+      if (!peaksPromise) {
+        peaksPromise = extractPeaks(audioUrl, BARS_COUNT).then(peaks => {
+          currentPeaks = peaks;
+          const progress = audio.duration ? audio.currentTime / audio.duration : 0;
+          drawWaveform(canvas, currentPeaks, progress, accent);
+          return peaks;
+        });
+      }
+      return peaksPromise;
+    };
+
+    player.addEventListener('track:activate', () => {
+      void loadPeaks();
+    }, { once: true });
 
     audio.addEventListener('loadedmetadata', () => {
       timeTotal.textContent = formatTime(audio.duration);
@@ -241,6 +253,7 @@ const { audioUrl, accentColor, download = false } = Astro.props;
 
     btnPlay.addEventListener('click', (e) => {
       e.stopPropagation();
+      void loadPeaks();
       window.dispatchEvent(new CustomEvent('track:play', { detail: { audio } }));
       audio.play().then(() => {
         btnPlay.classList.add('hidden');

@@ -178,6 +178,8 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           const activeHeader = panel.querySelector<HTMLElement>('.header-group');
           const activeArtwork = panel.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
           const activeBgImage = panel.querySelector<HTMLImageElement>('img');
+
+          activePlayer?.dispatchEvent(new Event('track:activate'));
           
           const tl = gsap.timeline({
             defaults: {
