@@ -8,7 +8,7 @@ export const tracks: TrackConfig[] = [
   {
     id: 1,
     bgNumber: 'A2',
-    title: 'Analogue Session',
+    title: 'Traditions',
     subtitle: '138 BPM / Techno',
     audio: '/music/IHEIZ_02.mp3',
     gradient: 'from-[#1A1A00] via-[#0D0E12] to-[#050505]',
@@ -23,7 +23,7 @@ export const tracks: TrackConfig[] = [
     id: 2,
     bgNumber: 'A1',
     isFeatured: true,
-    title: 'Traditions',
+    title: 'This is Techno',
     subtitle: '142 BPM / Hypnotic / Raw Techno',
     audio: '/music/IHEIZ_01.wav',
     gradient: 'from-[#001A24] via-[#090C15] to-[#040508]',

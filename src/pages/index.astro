@@ -60,7 +60,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
 
       <button 
         id="reset-btn" 
-        class="absolute bottom-[-100px] left-1/2 transform -translate-x-1/2 z-50 bg-white text-black font-black text-xs sm:text-sm uppercase tracking-widest px-6 py-3 sm:px-10 sm:py-4 shadow-2xl flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-transform opacity-0"
+        class="absolute bottom-[-100px] left-1/2 transform -translate-x-1/2 z-30 bg-white text-black font-black text-xs sm:text-sm uppercase tracking-widest px-6 py-3 sm:px-10 sm:py-4 shadow-2xl flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-transform opacity-0"
       >
         <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -69,7 +69,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
       </button>
     </main>
 
-    <script>
+<script>
       import { gsap } from "gsap";
 
       const resetBtn = document.querySelector<HTMLButtonElement>('#reset-btn');
@@ -85,13 +85,10 @@ import InfoOverlay from '../components/InfoOverlay.astro';
       const rnd = (min: number, max: number) => gsap.utils.random(min, max);
 
       panels.forEach(panel => {
-        // Selektoren synchronisiert mit TrackArtwork.astro (.hud-layer & .hero-layer)
         const mid = panel.querySelector<HTMLElement>('.hud-layer, .layer-mid');
         const fg = panel.querySelector<HTMLElement>('.hero-layer, .layer-fg');
 
-        // LAYER 2: MIDGROUND HUD (Entkoppelte Achsen erzeugen elliptische Driftbahnen)
         if (mid) {
-          // X-Drift
           gsap.to(mid, {
             x: rnd(-22, 22),
             duration: rnd(4.8, 6.8),
@@ -101,7 +98,6 @@ import InfoOverlay from '../components/InfoOverlay.astro';
             delay: rnd(0, 1.5)
           });
 
-          // Y-Drift (andere Taktung als X)
           gsap.to(mid, {
             y: rnd(-16, 16),
             duration: rnd(3.8, 5.4),
@@ -111,7 +107,6 @@ import InfoOverlay from '../components/InfoOverlay.astro';
             delay: rnd(0, 1.2)
           });
 
-          // Sanftes Taumeln / Drehen
           gsap.to(mid, {
             rotation: rnd(-7, 7),
             duration: rnd(6.5, 9.0),
@@ -122,9 +117,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           });
         }
 
-        // LAYER 3: FOREGROUND HERO EMBLEM (Schnellere Schwebung = Tiefenwirkung)
         if (fg) {
-          // X-Drift
           gsap.to(fg, {
             x: rnd(-14, 14),
             duration: rnd(3.6, 5.0),
@@ -134,7 +127,6 @@ import InfoOverlay from '../components/InfoOverlay.astro';
             delay: rnd(0.2, 1.0)
           });
 
-          // Y-Drift
           gsap.to(fg, {
             y: rnd(-18, 18),
             duration: rnd(2.9, 4.2),
@@ -144,7 +136,6 @@ import InfoOverlay from '../components/InfoOverlay.astro';
             delay: rnd(0, 0.8)
           });
 
-          // Feiner Breathing-Scale
           gsap.to(fg, {
             scale: rnd(1.04, 1.08),
             duration: rnd(3.0, 4.0),
@@ -162,7 +153,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
         
         if (isDesktop) {
           gsap.set("#panel-1", { x: "-10vw", width: "55vw", height: "100%", y: "0vh" });
-          gsap.set("#panel-2", { x: "0vw", width: "55vw", height: "100%", y: "0vh", left: "50%", xPercent: -50 });
+          gsap.set("#panel-2", { x: "0vw", width: "55vw", height: "100%", y: "0vh", left: "50%", xPercent: -50, transformOrigin: "50% 50%" });
           gsap.set("#panel-3", { x: "10vw", width: "55vw", height: "100%", y: "0vh" });
         } else {
           gsap.set("#panel-1", { x: 0, y: "0vh", width: "100%", height: "36vh" });
@@ -174,6 +165,7 @@ import InfoOverlay from '../components/InfoOverlay.astro';
       initLayout();
       window.addEventListener('resize', () => { if (!isExpanded) initLayout(); });
 
+      // CLICK EXPANSION
       panels.forEach(panel => {
         panel.addEventListener('click', () => {
           if (isExpanded) return;
@@ -184,9 +176,15 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           const isDesktop = window.innerWidth >= 768;
           const activePlayer = panel.querySelector<HTMLElement>('.audio-player');
           const activeHeader = panel.querySelector<HTMLElement>('.header-group');
-          // Selektor synchronisiert (.track-artwork-container & .track-artwork)
           const activeArtwork = panel.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
-          const tl = gsap.timeline();
+          const activeBgImage = panel.querySelector<HTMLImageElement>('img');
+          
+          const tl = gsap.timeline({
+            defaults: {
+              duration: 0.75,
+              ease: "power3.out" // Einheitlicher, flüssiger Antritt für alle Layer
+            }
+          });
 
           // Header anderer Panels ausblenden
           headerGroups.forEach(h => {
@@ -197,52 +195,59 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           panels.forEach(p => {
             if (p !== panel) {
               const otherArtwork = p.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
-              if (otherArtwork) gsap.to(otherArtwork, { opacity: 0, duration: 0.4 });
+              if (otherArtwork) gsap.to(otherArtwork, { opacity: 0, duration: 0.35 });
             }
           });
 
-          // 2. ACTIVE ZOOM: Aktives Artwork fokussieren
+          // 1. AKTIVES ARTWORK ZOOMEN (synchron ab T=0)
           if (activeArtwork) {
             tl.to(activeArtwork, {
               scale: isDesktop ? 1.25 : 1.15,
               opacity: 1,
-              y: isDesktop ? -20 : -10,
-              duration: 0.8,
-              ease: "power2.out"
+              y: isDesktop ? -20 : -10
             }, 0);
           }
 
-          // Schienen-Expansion
+          // 2. AKTIVES HINTERGRUNDBILD AKTIV ZOOMEN (verhindert den verspäteten Layout-Ruckler)
+          if (activeBgImage) {
+            tl.to(activeBgImage, {
+              scale: 1.08,
+              transformOrigin: "center center"
+            }, 0);
+          }
+
+          // 3. SCHIENEN-EXPANSION (alle synchron auf power3.out)
           if (isDesktop) {
             if (index === "1") {
-              tl.to("#panel-1", { x: "0vw", width: "140vw", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-2", { x: "100vw", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-3", { x: "132.5vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-1", { x: "0vw", width: "140vw" }, 0);
+              tl.to("#panel-2", { x: "100vw" }, 0);
+              tl.to("#panel-3", { x: "132.5vw" }, 0);
             } else if (index === "2") {
-              tl.to("#panel-1", { x: "-100vw", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-2", { width: "100vw", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-3", { x: "100vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-1", { x: "-100vw" }, 0);
+              tl.to("#panel-2", { width: "100vw" }, 0);
+              tl.to("#panel-3", { x: "100vw" }, 0);
             } else if (index === "3") {
-              tl.to("#panel-3", { x: "0vw", width: "140vw", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-2", { x: "-100vw", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-1", { x: "-132.5vw", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-3", { x: "0vw", width: "140vw" }, 0);
+              tl.to("#panel-2", { x: "-100vw" }, 0);
+              tl.to("#panel-1", { x: "-132.5vw" }, 0);
             }
           } else {
             if (index === "1") {
-              tl.to("#panel-1", { y: "0vh", height: "104vh", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-2", { y: "100vh", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-3", { y: "132vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-1", { y: "0vh", height: "104vh" }, 0);
+              tl.to("#panel-2", { y: "100vh" }, 0);
+              tl.to("#panel-3", { y: "132vh" }, 0);
             } else if (index === "2") {
-              tl.to("#panel-1", { y: "-36vh", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-2", { y: "-4vh", height: "108vh", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-3", { y: "100vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-1", { y: "-36vh" }, 0);
+              tl.to("#panel-2", { y: "-4vh", height: "108vh" }, 0);
+              tl.to("#panel-3", { y: "100vh" }, 0);
             } else if (index === "3") {
-              tl.to("#panel-1", { y: "-68vh", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-2", { y: "-36vh", duration: 0.7, ease: "power2.inOut" }, 0);
-              tl.to("#panel-3", { y: "-4vh", height: "104vh", duration: 0.7, ease: "power2.inOut" }, 0);
+              tl.to("#panel-1", { y: "-68vh" }, 0);
+              tl.to("#panel-2", { y: "-36vh" }, 0);
+              tl.to("#panel-3", { y: "-4vh", height: "104vh" }, 0);
             }
           }
 
+          // HEADER VERSETZEN
           if (activeHeader) {
             const shiftY = isDesktop 
               ? (window.innerHeight > 1200 ? -100 : -70) 
@@ -252,9 +257,10 @@ import InfoOverlay from '../components/InfoOverlay.astro';
               y: shiftY, 
               duration: 0.5, 
               ease: "power2.out" 
-            }, "-=0.2");
+            }, "-=0.35");
           }
 
+          // PLAYER EINBLENDEN
           if (activePlayer) {
             tl.to(activePlayer, {
               opacity: 1,
@@ -266,10 +272,11 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           }
 
           const resetBottom = window.innerHeight < 680 ? "24px" : "40px";
-          tl.to(resetBtn, { bottom: resetBottom, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }, "-=0.2");
+          tl.to(resetBtn, { bottom: resetBottom, opacity: 1, duration: 0.45, ease: "back.out(1.4)" }, "-=0.25");
         });
       });
 
+      // RESET
       resetBtn.addEventListener('click', () => {
         window.dispatchEvent(new CustomEvent('track:fade-active'));
 
@@ -279,6 +286,10 @@ import InfoOverlay from '../components/InfoOverlay.astro';
         });
 
         const tl = gsap.timeline({ 
+          defaults: {
+            duration: 0.6,
+            ease: "power3.out"
+          },
           onComplete: () => { 
             isExpanded = false; 
             document.body.classList.remove('is-expanded');
@@ -291,29 +302,34 @@ import InfoOverlay from '../components/InfoOverlay.astro';
           gsap.to(h, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" });
         });
 
-        // 3. ARTWORKS ZURÜCKSETZEN
+        // ARTWORKS & HINTERGRÜNDE ZURÜCKSETZEN
         panels.forEach(p => {
           const artwork = p.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
+          const bgImg = p.querySelector<HTMLImageElement>('img');
+          
           if (artwork) {
             gsap.to(artwork, { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
+          }
+          if (bgImg) {
+            gsap.to(bgImg, { scale: 1, duration: 0.6, ease: "power3.out" });
           }
         });
 
         const isDesktop = window.innerWidth >= 768;
 
         if (isDesktop) {
-          tl.to("#panel-1", { x: "-10vw", width: "55vw", duration: 0.6, ease: "power3.out" }, 0);
-          tl.to("#panel-2", { x: "0vw", width: "55vw", duration: 0.6, ease: "power3.out" }, 0);
-          tl.to("#panel-3", { x: "10vw", width: "55vw", duration: 0.6, ease: "power3.out" }, 0);
+          tl.to("#panel-1", { x: "-10vw", width: "55vw" }, 0);
+          tl.to("#panel-2", { x: "0vw", width: "55vw" }, 0);
+          tl.to("#panel-3", { x: "10vw", width: "55vw" }, 0);
         } else {
-          tl.to("#panel-1", { y: "0vh", height: "36vh", duration: 0.6, ease: "power3.out" }, 0);
-          tl.to("#panel-2", { y: "32vh", height: "36vh", duration: 0.6, ease: "power3.out" }, 0);
-          tl.to("#panel-3", { y: "64vh", height: "36vh", duration: 0.6, ease: "power3.out" }, 0);
+          tl.to("#panel-1", { y: "0vh", height: "36vh" }, 0);
+          tl.to("#panel-2", { y: "32vh", height: "36vh" }, 0);
+          tl.to("#panel-3", { y: "64vh", height: "36vh" }, 0);
         }
       });
     </script>
 
     <Preloader demoTitle="Analogue Session & More" />
-    
+
   </body>
 </html>

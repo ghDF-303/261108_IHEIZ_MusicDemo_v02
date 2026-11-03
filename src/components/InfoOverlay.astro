@@ -2,22 +2,21 @@
 // src/components/InfoOverlay.astro
 ---
 
-<!-- BACKDROP / DIMMER -->
+<!-- BACKDROP / DIMMER: z-[70] (dunkelt Panels und Back-Button ab) -->
 <div 
   id="info-backdrop" 
-  class="fixed inset-0 bg-black/60 backdrop-blur-xs opacity-0 pointer-events-none z-40 transition-opacity"
+  class="fixed inset-0 bg-black/60 backdrop-blur-xs opacity-0 pointer-events-none z-[70] transition-opacity"
   aria-hidden="true"
 ></div>
 
-<!-- TRIGGER-BUTTON (Z-Index 60, geschützt gegen Overlap) -->
+<!-- TRIGGER-BUTTON: z-[90] (liegt garantiert ÜBER der 90px-Spitze des Overlays) -->
 <button 
   id="info-trigger-btn" 
   type="button"
-  class="fixed top-2 left-2 md:top-3 md:left-3 z-[60] p-1 text-white hover:text-white/80 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] transition-colors cursor-pointer flex items-center justify-center select-none"
-  style="z-index: 60;"
+  class="fixed top-2 left-2 md:top-3 md:left-3 z-[90] p-1 text-white hover:text-white/80 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] transition-colors cursor-pointer flex items-center justify-center select-none"
+  style="z-index: 90;"
   aria-label="Artist Information öffnen/schließen"
 >
-  <!-- WRAPPER: Nimmt die GSAP-Animationen stabil auf -->
   <span 
     id="info-icon-wrapper" 
     class="inline-flex items-center justify-center w-8 h-8 md:w-9 md:h-9 will-change-transform"
@@ -35,10 +34,10 @@
   </span>
 </button>
 
-<!-- OVERLAY DRAWER -->
+<!-- OVERLAY DRAWER: z-[75] (über Back-Button und Backdrop, unter Trigger-Button) -->
 <aside 
   id="info-overlay" 
-  class="fixed top-0 left-0 h-full z-40 bg-zinc-950/95 border-r border-white/10 text-white backdrop-blur-xl shadow-2xl flex flex-col justify-between overflow-hidden"
+  class="fixed top-0 left-0 h-full z-[75] bg-[#27272a]/80 border-r border-white/10 text-white backdrop-blur-xl shadow-2xl flex flex-col justify-between overflow-hidden"
   aria-label="Artist Promo & Kontakt"
 >
   <!-- HAUPTCONTAINER: Auf mobilem Viewport auf 100dvh begrenzt mit Safe-Bottom-Padding -->
@@ -72,7 +71,7 @@
       <!-- SCROLL-CONTAINER (NATIVE SCROLLBARS VERSTECKT) -->
       <div 
         id="bio-scroll-container" 
-        class="w-full h-full overflow-y-auto pl-8 pr-2 space-y-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-text"
+        class="w-full h-full overflow-y-auto pl-4 pr-2 space-y-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-text"
       >
         <p class="text-sm md:text-base text-white/90 leading-relaxed font-light bio-p bio-tagline">
           My passion for raw, minimalist 90<span style="text-transform: lowercase;">s</span>-style techno has been the core concept behind this project since the early 2000<span style="text-transform: lowercase;">s</span>.
@@ -194,7 +193,7 @@
   // Stabile Transformation auf dem HTML-Wrapper
   gsap.set(iconWrapper, { transformOrigin: "50% 50%" });
 
-  // HERZSCHLAG-PULS TIMELINE AUF DEM WRAPPER
+  // HERZSCHLAG-PULS TIMELINE
   const heartbeatTl = gsap.timeline({
     repeat: -1,
     repeatDelay: 5,
