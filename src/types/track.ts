@@ -15,7 +15,7 @@ export interface TrackConfig {
   audio: string;
   gradient: string;
   accentColor: string;
-  download: DownloadOptions;
+  download?: DownloadOptions;
   bgImage?: ImageMetadata; // Typ für Astros Bild-Pipeline
   bgOpacity?: number;
 }

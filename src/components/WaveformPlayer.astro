@@ -19,6 +19,19 @@ const { audioUrl, accentColor, download = false } = Astro.props;
 
   <div class="waveform-wrapper w-full relative cursor-ew-resize py-1 sm:py-2 touch-none">
     <canvas class="waveform-canvas w-full h-12 sm:h-16 rounded" height="64"></canvas>
+    <svg
+      class="waveform-loading absolute inset-0 w-full h-full"
+      viewBox="0 0 96 64"
+      aria-hidden="true"
+    >
+      <rect class="waveform-loading-bar" x="22" y="25" width="4" height="14" rx="2" style="--bar-index: 0" vector-effect="non-scaling-stroke" />
+      <rect class="waveform-loading-bar" x="30" y="20" width="4" height="24" rx="2" style="--bar-index: 1" vector-effect="non-scaling-stroke" />
+      <rect class="waveform-loading-bar" x="38" y="14" width="4" height="36" rx="2" style="--bar-index: 2" vector-effect="non-scaling-stroke" />
+      <rect class="waveform-loading-bar" x="46" y="8" width="4" height="48" rx="2" style="--bar-index: 3" vector-effect="non-scaling-stroke" />
+      <rect class="waveform-loading-bar" x="54" y="14" width="4" height="36" rx="2" style="--bar-index: 4" vector-effect="non-scaling-stroke" />
+      <rect class="waveform-loading-bar" x="62" y="20" width="4" height="24" rx="2" style="--bar-index: 5" vector-effect="non-scaling-stroke" />
+      <rect class="waveform-loading-bar" x="70" y="25" width="4" height="14" rx="2" style="--bar-index: 6" vector-effect="non-scaling-stroke" />
+    </svg>
   </div>
 
   <div class="player-bar w-full flex flex-row items-center justify-between sm:justify-center gap-2 sm:gap-6 mt-2 sm:mt-4">
@@ -85,6 +98,49 @@ const { audioUrl, accentColor, download = false } = Astro.props;
 </div>
 
 <style>
+  .waveform-canvas {
+    opacity: 0;
+    transition: opacity 250ms ease;
+  }
+
+  .waveform-canvas.is-ready {
+    opacity: 1;
+  }
+
+  .waveform-loading {
+    color: var(--track-accent, #fff);
+    transition: opacity 250ms ease;
+  }
+
+  .waveform-loading.is-hidden {
+    opacity: 0;
+  }
+
+  .waveform-loading-bar {
+    fill: currentColor;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: waveform-pulse 900ms ease-in-out infinite;
+    animation-delay: calc(var(--bar-index) * 80ms);
+  }
+
+  @keyframes waveform-pulse {
+    0%, 100% { opacity: 0.45; transform: scaleY(0.35); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .waveform-loading-bar {
+      animation: none;
+      opacity: 0.7;
+    }
+
+    .waveform-canvas,
+    .waveform-loading {
+      transition: none;
+    }
+  }
+
   .parallelogram-btn {
     clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
     -webkit-clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
@@ -188,6 +244,7 @@ const { audioUrl, accentColor, download = false } = Astro.props;
   audioPlayers.forEach(player => {
     const audio = player.querySelector<HTMLAudioElement>('audio');
     const canvas = player.querySelector<HTMLCanvasElement>('.waveform-canvas');
+    const loadingIndicator = player.querySelector<SVGElement>('.waveform-loading');
     const wrapper = player.querySelector<HTMLElement>('.waveform-wrapper');
     const btnPlay = player.querySelector<HTMLButtonElement>('.btn-play');
     const btnPause = player.querySelector<HTMLButtonElement>('.btn-pause');
@@ -200,7 +257,7 @@ const { audioUrl, accentColor, download = false } = Astro.props;
     const audioUrl = player.getAttribute('data-audio-url') || '';
     const accent = player.getAttribute('data-accent') || '#ffffff';
 
-    if (!audio || !canvas || !wrapper || !btnPlay || !btnPause || !btnMute || !timeCurrent || !timeTotal) return;
+    if (!audio || !canvas || !loadingIndicator || !wrapper || !btnPlay || !btnPause || !btnMute || !timeCurrent || !timeTotal) return;
 
     let currentPeaks: number[] = [];
     let isDragging = false;
@@ -212,6 +269,8 @@ const { audioUrl, accentColor, download = false } = Astro.props;
           currentPeaks = peaks;
           const progress = audio.duration ? audio.currentTime / audio.duration : 0;
           drawWaveform(canvas, currentPeaks, progress, accent);
+          canvas.classList.add('is-ready');
+          loadingIndicator.classList.add('is-hidden');
           return peaks;
         });
       }
