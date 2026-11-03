@@ -23,5 +23,5 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-.mp3
-.wav
+*.mp3
+*.wav
