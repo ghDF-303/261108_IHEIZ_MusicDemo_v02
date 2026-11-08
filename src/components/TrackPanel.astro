@@ -1,26 +1,35 @@
 ---
 // src/components/TrackPanel.astro
-import type { TrackConfig } from '../types/track';
+import type { PanelPosition, TrackConfig } from '../types/track';
 import { Image } from 'astro:assets';
 import WaveformPlayer from './WaveformPlayer.astro';
 import TrackArtwork from './TrackArtwork.astro';
+import waveforms from '../data/waveforms.json';
 
 interface Props {
   track: TrackConfig;
+  index: number;
+  total: number;
 }
 
-const { track } = Astro.props;
+const { track, index, total } = Astro.props;
 
-// Im Frontmatter von TrackPanel.astro:
-// const isFeatured = track.id === 2;
 const isFeatured = Boolean(track.isFeatured);
+
+const position: PanelPosition =
+  total === 1 ? 'only' : index === 0 ? 'first' : index === total - 1 ? 'last' : 'middle';
+
+// Vorberechnete Wellenform (src/data/waveforms.json, erzeugt mit `npm run peaks`)
+const peaks = (waveforms as Record<string, number[] | undefined>)[track.audio];
 ---
 
-<section 
-  id={`panel-${track.id}`} 
-  data-index={track.id} 
-  class={`sliding-panel absolute bg-gradient-to-br ${track.gradient} flex flex-col items-center justify-center overflow-hidden select-none ${track.id === 2 ? 'z-20' : 'z-10'}`}
+<section
+  id={`panel-${track.id}`}
+  data-index={track.id}
+  data-position={position}
+  class={`sliding-panel absolute top-0 left-0 bg-gradient-to-br ${track.gradient} flex flex-col items-center justify-center overflow-hidden select-none ${isFeatured ? 'z-20' : 'z-10'}`}
   style={`--track-accent: ${track.accentColor};`}
+  aria-label={track.title}
 >
   <!-- ASTRO AUTOMATISCH OPTIMIERTES HINTERGRUNDBILD -->
   {track.bgImage && (
@@ -50,24 +59,32 @@ const isFeatured = Boolean(track.isFeatured);
     isFeatured={isFeatured}
   />
 
-<!-- CONTENT & PLAYER LAYER (Bereits vertikal & horizontal zentriert) -->
+  <!-- Öffnet das Panel per Tastatur/Screenreader. Mausklicks landen ebenfalls hier und
+       werden an die Section weitergereicht. Im geöffneten Zustand per CSS ausgeblendet. -->
+  <button
+    type="button"
+    class="panel-open-btn absolute inset-0 z-[5] cursor-pointer"
+    aria-label={`Open track: ${track.title}`}
+  ></button>
+
+  <!-- CONTENT & PLAYER LAYER (vertikal & horizontal zentriert) -->
   <div class="panel-content w-full h-full flex flex-col items-center justify-center relative px-4 sm:px-6 pointer-events-none z-10">
     <div class="header-group text-center pointer-events-auto">
-      <h2 
+      <h2
         class:list={[
-          'font-black uppercase tracking-tighter transition-all',
-          isFeatured 
-            ? 'text-4xl sm:text-6xl md:text-7xl 2xl:text-8xl' 
+          'font-extralight uppercase tracking-[-0.1em] transition-all',
+          isFeatured
+            ? 'text-4xl sm:text-6xl md:text-7xl 2xl:text-8xl'
             : 'text-3xl sm:text-5xl md:text-6xl 2xl:text-7xl'
         ]}
       >
         {track.title}
       </h2>
-      <p 
+      <p
         class:list={[
           'font-bold uppercase tracking-widest text-white/80 transition-all',
-          isFeatured 
-            ? 'text-sm sm:text-base 2xl:text-lg mt-1.5 sm:mt-2.5' 
+          isFeatured
+            ? 'text-sm sm:text-base 2xl:text-lg mt-1.5 sm:mt-2.5'
             : 'text-xs sm:text-sm 2xl:text-base mt-1 sm:mt-2'
         ]}
       >
@@ -75,49 +92,50 @@ const isFeatured = Boolean(track.isFeatured);
       </p>
     </div>
 
-    <WaveformPlayer 
-      audioUrl={track.audio} 
-      accentColor={track.accentColor} 
-      download={track.download} 
+    <WaveformPlayer
+      audioUrl={track.audio}
+      title={track.title}
+      accentColor={track.accentColor}
+      peaks={peaks}
+      download={track.download}
     />
   </div>
 </section>
 
 <style>
+  /*
+   * Position und Größe der Panels setzt das Script in index.astro (GSAP).
+   * Hier stehen nur die Schrägen und Startwerte, bevor das Script läuft.
+   */
+
   /* DESKTOP-SCHIENEN-SYSTEM (Vertikale Schrägen) */
   @media (min-width: 768px) {
     .sliding-panel {
       clip-path: polygon(15vw 0%, 100% 0%, calc(100% - 15vw) 100%, 0% 100%);
-      -webkit-clip-path: polygon(15vw 0%, 100% 0%, calc(100% - 15vw) 100%, 0% 100%);
       width: 55vw;
       height: 100%;
       isolation: isolate;
-      will-change: transform, width, clip-path;
+      will-change: transform;
     }
-    :global(#panel-1) { left: 0; transform-origin: left center; }
-    :global(#panel-2) { left: 50%; }
-    :global(#panel-3) { right: 0; transform-origin: right center; }
   }
 
-  /* MOBILE-SCHIENEN-SYSTEM (Horizontale Schrägen) */
+  /* MOBILE-SCHIENEN-SYSTEM (Horizontale Schrägen; 4 % der sichtbaren Höhe, passend zu MOBILE_OVERLAP) */
   @media (max-width: 767px) {
     .sliding-panel {
+      --slant: 4vh;
+      --slant: 4dvh;
       width: 100%;
-      left: 0;
       isolation: isolate;
-      will-change: transform, height, clip-path;
+      will-change: transform;
     }
-    :global(#panel-1) {
-      clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
-      -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
+    .sliding-panel[data-position='first'] {
+      clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - var(--slant)), 0% 100%);
     }
-    :global(#panel-2) {
-      clip-path: polygon(0% 4vh, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
-      -webkit-clip-path: polygon(0% 4vh, 100% 0%, 100% calc(100% - 4vh), 0% 100%);
+    .sliding-panel[data-position='middle'] {
+      clip-path: polygon(0% var(--slant), 100% 0%, 100% calc(100% - var(--slant)), 0% 100%);
     }
-    :global(#panel-3) {
-      clip-path: polygon(0% 4vh, 100% 0%, 100% 100%, 0% 100%);
-      -webkit-clip-path: polygon(0% 4vh, 100% 0%, 100% 100%, 0% 100%);
+    .sliding-panel[data-position='last'] {
+      clip-path: polygon(0% var(--slant), 100% 0%, 100% 100%, 0% 100%);
     }
   }
 
@@ -126,5 +144,19 @@ const isFeatured = Boolean(track.isFeatured);
   }
   :global(body.is-expanded) .sliding-panel {
     cursor: default;
+  }
+
+  /* Im geöffneten Zustand nicht mehr fokussierbar */
+  :global(body.is-expanded) .panel-open-btn {
+    display: none;
+  }
+
+  /* Fokus-Anzeige: Der Button füllt das schräg beschnittene Panel, daher wird der Titel markiert */
+  .panel-open-btn:focus-visible {
+    outline: none;
+  }
+  .panel-open-btn:focus-visible ~ .panel-content .header-group {
+    outline: 2px solid var(--track-accent);
+    outline-offset: 12px;
   }
 </style>

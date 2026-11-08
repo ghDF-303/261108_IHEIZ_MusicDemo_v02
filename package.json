@@ -1,7 +1,8 @@
 {
-  "name": "",
+  "name": "iheiz-music-demo",
   "type": "module",
   "version": "0.0.1",
+  "private": true,
   "engines": {
     "node": ">=22.23.4"
   },
@@ -9,6 +10,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "check": "astro check",
+    "peaks": "node scripts/generate-peaks.mjs",
     "astro": "astro"
   },
   "dependencies": {
@@ -16,5 +19,10 @@
     "astro": "^7.4.4",
     "gsap": "^3.15.0",
     "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "mpg123-decoder": "^1.0.3",
+    "typescript": "^6.0.3"
   }
 }

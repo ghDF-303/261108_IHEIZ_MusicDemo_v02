@@ -7,14 +7,14 @@ interface Props {
   trackId: number;
   accentColor: string;
   bgNumber?: string;
-  isFeatured?: boolean; // <- Neu
+  isFeatured?: boolean;
 }
 
-const { 
-  trackId, 
-  accentColor, 
-  bgNumber, 
-  isFeatured = false // Default: false
+const {
+  trackId,
+  accentColor,
+  bgNumber,
+  isFeatured = false
 } = Astro.props;
 
 const displayTag = bgNumber ?? trackId.toString().padStart(2, '0');
@@ -24,10 +24,10 @@ const displayTag = bgNumber ?? trackId.toString().padStart(2, '0');
   class="track-artwork-container pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden select-none z-[2]"
   style={`--artwork-color: ${accentColor};`}
 >
-  <!-- LAYER 1 (BG): Große Nummer (is-featured für Panel 2) -->
+  <!-- LAYER 1 (BG): Große Nummer (is-featured für den Lead-Track) -->
   <span
     class:list={[
-      'bg-track-number pointer-events-none absolute font-[\'Inter\'] font-black select-none leading-none opacity-15 transition-transform duration-700 ease-out will-change-transform text-[var(--artwork-color)]',
+      'bg-track-number pointer-events-none absolute font-black select-none leading-none opacity-15 text-[var(--artwork-color)]',
       isFeatured && 'is-featured'
     ]}
   >
@@ -52,13 +52,10 @@ const displayTag = bgNumber ?? trackId.toString().padStart(2, '0');
 
 <style>
   .bg-track-number {
-    font-family: 'Inter';
     font-size: clamp(14rem, 24vw, 36rem);
-    user-select: none;
-    -webkit-user-select: none;
   }
 
-  /* PANEL 2 LEAD TRACK: ca. 20% größer, perfekt auf gemeinsamer Mittelachse */
+  /* LEAD TRACK: ca. 20% größer, auf gemeinsamer Mittelachse */
   .bg-track-number.is-featured {
     font-size: clamp(17rem, 29vw, 44rem);
   }

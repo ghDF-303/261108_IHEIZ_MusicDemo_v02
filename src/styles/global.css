@@ -1,70 +1,84 @@
-/* inter-200 - latin */
+@import "tailwindcss";
+
+/* Inter, lokal eingebunden. Die Gewichte 200/400/700/900 werden in BaseLayout vorgeladen. */
 @font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 200;
-  src: url('/fonts/inter-v20-latin-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/inter-v20-latin-200.woff2') format('woff2');
 }
-/* inter-regular - latin */
 @font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  src: url('/fonts/inter-v20-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/inter-v20-latin-regular.woff2') format('woff2');
 }
-/* inter-700 - latin */
 @font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 700;
-  src: url('/fonts/inter-v20-latin-700.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/inter-v20-latin-700.woff2') format('woff2');
 }
-/* inter-900 - latin */
 @font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 900;
-  src: url('/fonts/inter-v20-latin-900.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('/fonts/inter-v20-latin-900.woff2') format('woff2');
 }
-
-@import "tailwindcss";
 
 @theme {
-    --font-display: 'Inter', sans-serif;
-    --font-inter: 'Inter', sans-serif;
+  /* Standardschrift der Seite (Tailwind setzt sie über Preflight auf <html>) */
+  --font-sans: 'Inter', sans-serif;
 }
 
-html, body {font-family: 'Inter', sans-serif; font-size:18px;}
-h2 {font-weight: 200;letter-spacing: -.1em;}
-/* .header-group p, .info-content-box p {font-weight:200; letter-spacing: normal;}
-.artist-info-table p {font-size:1em;} */
+/*
+ * Eigene Regeln stehen in Layern, damit Tailwind-Klassen sie bei Bedarf
+ * überschreiben können (Regeln außerhalb eines Layers würden immer gewinnen).
+ */
+@layer base {
+  html {
+    font-size: 18px;
+  }
 
-.bio-p {
+  body {
+    /* Sichtbare Höhe; vh als Fallback für ältere Browser */
+    height: 100vh;
+    height: 100dvh;
+    /* Pinch-Zoom erlaubt, Doppeltipp-Zoom verhindert */
+    touch-action: manipulation;
+  }
+}
+
+@layer components {
+  .parallelogram-btn {
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  }
+
+  /* Bio im Info-Overlay */
+  .bio-p {
     margin: 1em 0;
-}
+  }
 
-.bio-tagline {
+  .bio-tagline {
     font-weight: 200;
     text-transform: uppercase;
     line-height: 1em;
     font-size: 2em;
-    padding-right:10em;
-}
+    padding-right: 10em;
+    color: rgb(255 255 255 / 0.9);
+  }
 
-@media screen and (max-width: 768px) {
+  @media screen and (max-width: 768px) {
     .bio-tagline {
-    font-weight:400;
-    line-height: 1.2em;
-    font-size: .9em;
-    padding-right:0;
-    color:white;
+      font-weight: 400;
+      line-height: 1.2em;
+      font-size: 0.9em;
+      padding-right: 0;
+      color: white;
     }
-}
-
-.info-content-box {
- /* nope */  
+  }
 }

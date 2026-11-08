@@ -7,295 +7,324 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="IHEIZ - Music Demo">
-  <style is:global>
-    #reset-btn {
-      clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
-      -webkit-clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
-    }
-  </style>
+  <main id="stage" class="relative w-full h-full overflow-hidden flex flex-col md:flex-row items-center">
+    <h1 class="sr-only">IHEIZ – Music Demo</h1>
 
-    <main class="relative w-full h-full overflow-hidden flex flex-col md:flex-row items-center">
+    <!-- Artist & Promo Info Overlay -->
+    <InfoOverlay />
 
-      <!-- Artist & Promo Info Overlay -->
-      <InfoOverlay />
+    {tracks.map((track, index) => (
+      <TrackPanel track={track} index={index} total={tracks.length} />
+    ))}
 
-      {tracks.map((track) => (
-        <TrackPanel track={track} />
-      ))}
+    <button
+      id="reset-btn"
+      type="button"
+      class="invisible absolute bottom-[-100px] left-1/2 transform -translate-x-1/2 z-30 bg-white text-black font-black text-xs sm:text-sm uppercase tracking-widest px-6 py-3 sm:px-10 sm:py-4 shadow-2xl flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-transform opacity-0"
+    >
+      Back
+    </button>
+  </main>
 
-      <button 
-        id="reset-btn" 
-        class="absolute bottom-[-100px] left-1/2 transform -translate-x-1/2 z-30 bg-white text-black font-black text-xs sm:text-sm uppercase tracking-widest px-6 py-3 sm:px-10 sm:py-4 shadow-2xl flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-transform opacity-0"
-      >
-        <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg> -->
-        Back
-      </button>
-    </main>
+  <Preloader demoTitle="Analogue Session & More" />
+</BaseLayout>
+
+<style>
+  #reset-btn {
+    clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+  }
+</style>
 
 <script>
-      import { gsap } from "gsap";
+  import { gsap } from "gsap";
 
-      const resetBtn = document.querySelector<HTMLButtonElement>('#reset-btn');
-      const headerGroups = document.querySelectorAll<HTMLElement>('.header-group');
-      const panels = document.querySelectorAll<HTMLElement>('.sliding-panel');
-      const audioPlayers = document.querySelectorAll<HTMLElement>('.audio-player');
-      
-      let isExpanded = false;
+  /*
+   * LAYOUT-GEOMETRIE
+   * Alle Werte in Prozent der Bühnenbreite (Desktop) bzw. -höhe (Mobile).
+   * Bei 3 Tracks ergeben sie exakt das ursprüngliche Layout; bei mehr oder weniger
+   * Tracks werden Breite/Höhe und Abstände proportional berechnet.
+   */
+  const DESKTOP_START = -10;              // linke Kante des ersten Panels
+  const DESKTOP_SPAN = 120;               // Panels reichen von -10 bis 110
+  const DESKTOP_WIDTH_RATIO = 55 / 32.5;  // Panelbreite : Abstand (3 Tracks: 55 : 32.5)
+  const DESKTOP_EXPANDED_EDGE = 140;      // Breite des geöffneten ersten/letzten Panels
+  const DESKTOP_OFFSCREEN_GAP = 22.5;     // Abstand der weggeschobenen Panels zum Rand
+  const MOBILE_OVERLAP = 4;               // Überlappung = Schräge (siehe --slant in TrackPanel)
 
-      if (!resetBtn) throw new Error('#reset-btn fehlt im DOM');
+  const BREAKPOINT = '(min-width: 768px)';
+  const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
-      // 1. ORGANISCHER SCHWEBEMODUS MIT ZUFALLSWERTEN PRO PANEL
-      const rnd = (min: number, max: number) => gsap.utils.random(min, max);
+  interface Box { x: number; y: number; width: number; height: number }
+  interface Viewport { desktop: boolean; w: number; h: number }
 
-      panels.forEach(panel => {
-        const mid = panel.querySelector<HTMLElement>('.hud-layer, .layer-mid');
-        const fg = panel.querySelector<HTMLElement>('.hero-layer, .layer-fg');
+  const stage = document.querySelector<HTMLElement>('#stage');
+  const resetBtn = document.querySelector<HTMLButtonElement>('#reset-btn');
+  if (!stage || !resetBtn) throw new Error('#stage oder #reset-btn fehlt im DOM');
 
-        if (mid) {
-          gsap.to(mid, {
-            x: rnd(-22, 22),
-            duration: rnd(4.8, 6.8),
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            delay: rnd(0, 1.5)
-          });
+  const panels = Array.from(document.querySelectorAll<HTMLElement>('.sliding-panel'));
+  const count = panels.length;
 
-          gsap.to(mid, {
-            y: rnd(-16, 16),
-            duration: rnd(3.8, 5.4),
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            delay: rnd(0, 1.2)
-          });
+  const parts = panels.map((panel) => ({
+    panel,
+    header: panel.querySelector<HTMLElement>('.header-group'),
+    player: panel.querySelector<HTMLElement>('.audio-player'),
+    playBtn: panel.querySelector<HTMLButtonElement>('.btn-play'),
+    openBtn: panel.querySelector<HTMLButtonElement>('.panel-open-btn'),
+    artwork: panel.querySelector<HTMLElement>('.track-artwork-container'),
+    bgImage: panel.querySelector<HTMLImageElement>('img'),
+    hud: panel.querySelector<HTMLElement>('.hud-layer'),
+    hero: panel.querySelector<HTMLElement>('.hero-layer'),
+  }));
 
-          gsap.to(mid, {
-            rotation: rnd(-7, 7),
-            duration: rnd(6.5, 9.0),
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            transformOrigin: "50% 50%"
-          });
-        }
+  const prefersReducedMotion = () => window.matchMedia(REDUCED_MOTION).matches;
 
-        if (fg) {
-          gsap.to(fg, {
-            x: rnd(-14, 14),
-            duration: rnd(3.6, 5.0),
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            delay: rnd(0.2, 1.0)
-          });
+  // Gemessen an der Bühne (nicht window.inner*): stimmt mit 100dvh überein und
+  // ändert sich nicht beim Pinch-Zoom auf Mobilgeräten.
+  function viewport(): Viewport {
+    return {
+      desktop: window.matchMedia(BREAKPOINT).matches,
+      w: stage!.clientWidth,
+      h: stage!.clientHeight,
+    };
+  }
 
-          gsap.to(fg, {
-            y: rnd(-18, 18),
-            duration: rnd(2.9, 4.2),
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            delay: rnd(0, 0.8)
-          });
+  // ---------- Geometrie ----------
 
-          gsap.to(fg, {
-            scale: rnd(1.04, 1.08),
-            duration: rnd(3.0, 4.0),
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            transformOrigin: "50% 50%"
-          });
-        }
-      });
+  function desktopMetrics() {
+    const step = DESKTOP_SPAN / (count - 1 + DESKTOP_WIDTH_RATIO);
+    return { step, width: step * DESKTOP_WIDTH_RATIO };
+  }
 
-      function initLayout() {
-        const isDesktop = window.innerWidth >= 768;
-        gsap.killTweensOf(["#panel-1", "#panel-2", "#panel-3"]);
-        
-        if (isDesktop) {
-          gsap.set("#panel-1", { x: "-10vw", width: "55vw", height: "100%", y: "0vh" });
-          gsap.set("#panel-2", { x: "0vw", width: "55vw", height: "100%", y: "0vh", left: "50%", xPercent: -50, transformOrigin: "50% 50%" });
-          gsap.set("#panel-3", { x: "10vw", width: "55vw", height: "100%", y: "0vh" });
-        } else {
-          gsap.set("#panel-1", { x: 0, y: "0vh", width: "100%", height: "36vh" });
-          gsap.set("#panel-2", { x: 0, y: "32vh", width: "100%", height: "36vh", left: 0, xPercent: 0 });
-          gsap.set("#panel-3", { x: 0, y: "64vh", width: "100%", height: "36vh" });
-        }
+  function mobileMetrics() {
+    const step = (100 - MOBILE_OVERLAP) / count;
+    return { step, height: count === 1 ? 100 : step + MOBILE_OVERLAP };
+  }
+
+  /** Zugeklappt: alle Panels nebeneinander (Desktop) bzw. übereinander (Mobile). */
+  function collapsedBox(i: number, vp: Viewport): Box {
+    const pw = vp.w / 100;
+    const ph = vp.h / 100;
+    if (vp.desktop) {
+      const { step, width } = desktopMetrics();
+      return { x: (DESKTOP_START + i * step) * pw, y: 0, width: width * pw, height: vp.h };
+    }
+    const { step, height } = mobileMetrics();
+    return { x: 0, y: i * step * ph, width: vp.w, height: height * ph };
+  }
+
+  /** Aufgeklappt: Panel `active` füllt den Screen, die anderen weichen nach außen aus. */
+  function expandedBox(i: number, active: number, vp: Viewport): Box {
+    const pw = vp.w / 100;
+    const ph = vp.h / 100;
+    const isFirst = active === 0;
+    const isLast = active === count - 1;
+
+    if (vp.desktop) {
+      const { width } = desktopMetrics();
+      if (i === active) {
+        if (isFirst) return { x: 0, y: 0, width: DESKTOP_EXPANDED_EDGE * pw, height: vp.h };
+        if (isLast) return { x: (100 - DESKTOP_EXPANDED_EDGE) * pw, y: 0, width: DESKTOP_EXPANDED_EDGE * pw, height: vp.h };
+        return { x: 0, y: 0, width: 100 * pw, height: vp.h };
       }
+      const x = i < active
+        ? -DESKTOP_OFFSCREEN_GAP - width * (active - i)
+        : 100 + DESKTOP_OFFSCREEN_GAP + width * (i - active - 1);
+      return { x: x * pw, y: 0, width: width * pw, height: vp.h };
+    }
 
-      initLayout();
-      window.addEventListener('resize', () => { if (!isExpanded) initLayout(); });
+    const { step, height } = mobileMetrics();
+    if (i === active) {
+      if (count === 1) return { x: 0, y: 0, width: vp.w, height: vp.h };
+      if (isFirst) return { x: 0, y: 0, width: vp.w, height: (100 + MOBILE_OVERLAP) * ph };
+      if (isLast) return { x: 0, y: -MOBILE_OVERLAP * ph, width: vp.w, height: (100 + MOBILE_OVERLAP) * ph };
+      return { x: 0, y: -MOBILE_OVERLAP * ph, width: vp.w, height: (100 + 2 * MOBILE_OVERLAP) * ph };
+    }
+    const y = i < active
+      ? -height - step * (active - 1 - i)
+      : 100 + step * (i - active - 1);
+    return { x: 0, y: y * ph, width: vp.w, height: height * ph };
+  }
 
-      // CLICK EXPANSION
-      panels.forEach(panel => {
-        panel.addEventListener('click', () => {
-          if (isExpanded) return;
-          isExpanded = true;
-          document.body.classList.add('is-expanded');
-          
-          const index = panel.getAttribute('data-index');
-          const isDesktop = window.innerWidth >= 768;
-          const activePlayer = panel.querySelector<HTMLElement>('.audio-player');
-          const activeHeader = panel.querySelector<HTMLElement>('.header-group');
-          const activeArtwork = panel.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
-          const activeBgImage = panel.querySelector<HTMLImageElement>('img');
+  const headerShift = (vp: Viewport) =>
+    vp.desktop ? (vp.h > 1200 ? -100 : -70) : (vp.h < 680 ? -55 : -85);
+  const resetBottom = (vp: Viewport) => (vp.h < 680 ? 24 : 40);
+  const artworkZoom = (vp: Viewport) =>
+    vp.desktop ? { scale: 1.25, y: -20 } : { scale: 1.15, y: -10 };
 
-          activePlayer?.dispatchEvent(new Event('track:activate'));
-          
-          const tl = gsap.timeline({
-            defaults: {
-              duration: 0.75,
-              ease: "power3.out" // Einheitlicher, flüssiger Antritt für alle Layer
-            }
-          });
+  // ---------- Schwebemodus (dekorativ) ----------
 
-          // Header anderer Panels ausblenden
-          headerGroups.forEach(h => {
-            if (!panel.contains(h)) gsap.to(h, { opacity: 0, scale: 0.9, duration: 0.3 });
-          });
+  const rnd = (min: number, max: number) => gsap.utils.random(min, max);
+  const floatTweens: gsap.core.Tween[][] = parts.map(() => []);
 
-          // Artworks anderer Panels ausblenden
-          panels.forEach(p => {
-            if (p !== panel) {
-              const otherArtwork = p.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
-              if (otherArtwork) gsap.to(otherArtwork, { opacity: 0, duration: 0.35 });
-            }
-          });
+  if (!prefersReducedMotion()) {
+    parts.forEach(({ hud, hero }, i) => {
+      const loop = { repeat: -1, yoyo: true, ease: "sine.inOut" };
+      if (hud) {
+        floatTweens[i].push(
+          gsap.to(hud, { ...loop, x: rnd(-22, 22), duration: rnd(4.8, 6.8), delay: rnd(0, 1.5) }),
+          gsap.to(hud, { ...loop, y: rnd(-16, 16), duration: rnd(3.8, 5.4), delay: rnd(0, 1.2) }),
+          gsap.to(hud, { ...loop, rotation: rnd(-7, 7), duration: rnd(6.5, 9.0), transformOrigin: "50% 50%" }),
+        );
+      }
+      if (hero) {
+        floatTweens[i].push(
+          gsap.to(hero, { ...loop, x: rnd(-14, 14), duration: rnd(3.6, 5.0), delay: rnd(0.2, 1.0) }),
+          gsap.to(hero, { ...loop, y: rnd(-18, 18), duration: rnd(2.9, 4.2), delay: rnd(0, 0.8) }),
+          gsap.to(hero, { ...loop, scale: rnd(1.04, 1.08), duration: rnd(3.0, 4.0), transformOrigin: "50% 50%" }),
+        );
+      }
+    });
+  }
 
-          // 1. AKTIVES ARTWORK ZOOMEN (synchron ab T=0)
-          if (activeArtwork) {
-            tl.to(activeArtwork, {
-              scale: isDesktop ? 1.25 : 1.15,
-              opacity: 1,
-              y: isDesktop ? -20 : -10
-            }, 0);
-          }
+  // Unsichtbare Panels müssen nicht weiter animiert werden
+  const pauseFloatsExcept = (active: number) =>
+    floatTweens.forEach((list, i) => { if (i !== active) list.forEach((t) => t.pause()); });
+  const resumeFloats = () => floatTweens.forEach((list) => list.forEach((t) => t.resume()));
 
-          // 2. AKTIVES HINTERGRUNDBILD AKTIV ZOOMEN (verhindert den verspäteten Layout-Ruckler)
-          if (activeBgImage) {
-            tl.to(activeBgImage, {
-              scale: 1.08,
-              transformOrigin: "center center"
-            }, 0);
-          }
+  // ---------- Zustand ----------
 
-          // 3. SCHIENEN-EXPANSION (alle synchron auf power3.out)
-          if (isDesktop) {
-            if (index === "1") {
-              tl.to("#panel-1", { x: "0vw", width: "140vw" }, 0);
-              tl.to("#panel-2", { x: "100vw" }, 0);
-              tl.to("#panel-3", { x: "132.5vw" }, 0);
-            } else if (index === "2") {
-              tl.to("#panel-1", { x: "-100vw" }, 0);
-              tl.to("#panel-2", { width: "100vw" }, 0);
-              tl.to("#panel-3", { x: "100vw" }, 0);
-            } else if (index === "3") {
-              tl.to("#panel-3", { x: "0vw", width: "140vw" }, 0);
-              tl.to("#panel-2", { x: "-100vw" }, 0);
-              tl.to("#panel-1", { x: "-132.5vw" }, 0);
-            }
-          } else {
-            if (index === "1") {
-              tl.to("#panel-1", { y: "0vh", height: "104vh" }, 0);
-              tl.to("#panel-2", { y: "100vh" }, 0);
-              tl.to("#panel-3", { y: "132vh" }, 0);
-            } else if (index === "2") {
-              tl.to("#panel-1", { y: "-36vh" }, 0);
-              tl.to("#panel-2", { y: "-4vh", height: "108vh" }, 0);
-              tl.to("#panel-3", { y: "100vh" }, 0);
-            } else if (index === "3") {
-              tl.to("#panel-1", { y: "-68vh" }, 0);
-              tl.to("#panel-2", { y: "-36vh" }, 0);
-              tl.to("#panel-3", { y: "-4vh", height: "104vh" }, 0);
-            }
-          }
+  let activeIndex: number | null = null;   // null = zugeklappt
+  let busy = false;                        // Animation läuft
+  let currentTl: gsap.core.Timeline | null = null;
 
-          // HEADER VERSETZEN
-          if (activeHeader) {
-            const shiftY = isDesktop 
-              ? (window.innerHeight > 1200 ? -100 : -70) 
-              : (window.innerHeight < 680 ? -55 : -85);
+  /** Setzt Position/Größe aller Panels und die größenabhängigen Werte ohne Animation. */
+  function applyLayout() {
+    const vp = viewport();
+    parts.forEach(({ panel }, i) => {
+      gsap.set(panel, activeIndex === null ? collapsedBox(i, vp) : expandedBox(i, activeIndex, vp));
+    });
 
-            tl.to(activeHeader, { 
-              y: shiftY, 
-              duration: 0.5, 
-              ease: "power2.out" 
-            }, "-=0.35");
-          }
+    if (activeIndex !== null) {
+      const active = parts[activeIndex];
+      if (active.artwork) gsap.set(active.artwork, artworkZoom(vp));
+      if (active.header) gsap.set(active.header, { y: headerShift(vp) });
+      gsap.set(resetBtn, { bottom: resetBottom(vp) });
+    }
+  }
 
-          // PLAYER EINBLENDEN
-          if (activePlayer) {
-            tl.to(activePlayer, {
-              opacity: 1,
-              y: 0,
-              duration: 0.45,
-              ease: "power2.out",
-              onStart: () => { activePlayer.style.pointerEvents = "auto"; }
-            }, "-=0.3");
-          }
+  applyLayout();
 
-          const resetBottom = window.innerHeight < 680 ? "24px" : "40px";
-          tl.to(resetBtn, { bottom: resetBottom, opacity: 1, duration: 0.45, ease: "back.out(1.4)" }, "-=0.25");
-        });
-      });
+  // Größenänderung / Drehen – auch im geöffneten Zustand
+  let resizeFrame = 0;
+  let lastSize = `${stage.clientWidth}x${stage.clientHeight}`;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      const size = `${stage.clientWidth}x${stage.clientHeight}`;
+      if (size === lastSize) return;
+      lastSize = size;
+      currentTl?.progress(1); // laufende Animation sofort beenden
+      applyLayout();
+    });
+  });
 
-      // RESET
-      resetBtn.addEventListener('click', () => {
-        window.dispatchEvent(new CustomEvent('track:fade-active'));
+  // ---------- Aufklappen ----------
 
-        audioPlayers.forEach(p => {
-          p.style.pointerEvents = "none";
-          gsap.to(p, { opacity: 0, y: 24, duration: 0.25 });
-        });
+  function expand(index: number, viaKeyboard: boolean) {
+    if (activeIndex !== null || busy) return;
+    activeIndex = index;
+    busy = true;
+    document.body.classList.add('is-expanded');
 
-        const tl = gsap.timeline({ 
-          defaults: {
-            duration: 0.6,
-            ease: "power3.out"
-          },
-          onComplete: () => { 
-            isExpanded = false; 
-            document.body.classList.remove('is-expanded');
-          } 
-        });
-        
-        tl.to(resetBtn, { bottom: "-100px", opacity: 0, duration: 0.3, ease: "power2.in" });
-        
-        headerGroups.forEach(h => {
-          gsap.to(h, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" });
-        });
+    const vp = viewport();
+    const active = parts[index];
+    active.player?.dispatchEvent(new Event('track:activate'));
+    pauseFloatsExcept(index);
 
-        // ARTWORKS & HINTERGRÜNDE ZURÜCKSETZEN
-        panels.forEach(p => {
-          const artwork = p.querySelector<HTMLElement>('.track-artwork-container, .track-artwork');
-          const bgImg = p.querySelector<HTMLImageElement>('img');
-          
-          if (artwork) {
-            gsap.to(artwork, { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
-          }
-          if (bgImg) {
-            gsap.to(bgImg, { scale: 1, duration: 0.6, ease: "power3.out" });
-          }
-        });
+    const tl = gsap.timeline({
+      defaults: { duration: 0.75, ease: "power3.out" },
+      onComplete: () => {
+        busy = false;
+        currentTl = null;
+        if (viaKeyboard) active.playBtn?.focus({ preventScroll: true });
+      },
+    });
+    currentTl = tl;
 
-        const isDesktop = window.innerWidth >= 768;
+    // Header und Artworks der anderen Panels ausblenden
+    parts.forEach((p, i) => {
+      if (i === index) return;
+      if (p.header) tl.to(p.header, { opacity: 0, scale: 0.9, duration: 0.3 }, 0);
+      if (p.artwork) tl.to(p.artwork, { opacity: 0, duration: 0.35 }, 0);
+    });
 
-        if (isDesktop) {
-          tl.to("#panel-1", { x: "-10vw", width: "55vw" }, 0);
-          tl.to("#panel-2", { x: "0vw", width: "55vw" }, 0);
-          tl.to("#panel-3", { x: "10vw", width: "55vw" }, 0);
-        } else {
-          tl.to("#panel-1", { y: "0vh", height: "36vh" }, 0);
-          tl.to("#panel-2", { y: "32vh", height: "36vh" }, 0);
-          tl.to("#panel-3", { y: "64vh", height: "36vh" }, 0);
+    // Aktives Artwork und Hintergrundbild zoomen
+    if (active.artwork) tl.to(active.artwork, { ...artworkZoom(vp), opacity: 1 }, 0);
+    if (active.bgImage) tl.to(active.bgImage, { scale: 1.08, transformOrigin: "center center" }, 0);
+
+    // Schienen-Expansion
+    parts.forEach(({ panel }, i) => tl.to(panel, expandedBox(i, index, vp), 0));
+
+    // Header versetzen, Player und Back-Button einblenden
+    if (active.header) tl.to(active.header, { y: headerShift(vp), duration: 0.5, ease: "power2.out" }, 0.4);
+    if (active.player) {
+      const player = active.player;
+      tl.to(player, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.45,
+        ease: "power2.out",
+        onStart: () => { player.style.pointerEvents = "auto"; },
+      }, 0.6);
+    }
+    tl.to(resetBtn, { bottom: resetBottom(vp), autoAlpha: 1, duration: 0.45, ease: "back.out(1.4)" }, 0.8);
+
+    if (prefersReducedMotion()) tl.timeScale(6);
+  }
+
+  panels.forEach((panel, i) => {
+    // detail === 0: Klick wurde per Tastatur (Enter/Leertaste) ausgelöst
+    panel.addEventListener('click', (e) => expand(i, e.detail === 0));
+  });
+
+  // ---------- Zuklappen ----------
+
+  function collapse() {
+    if (activeIndex === null) return;
+    const previous = parts[activeIndex];
+    currentTl?.progress(1);
+    activeIndex = null;
+    busy = true;
+
+    window.dispatchEvent(new CustomEvent('track:fade-active'));
+    resumeFloats();
+
+    const vp = viewport();
+    const tl = gsap.timeline({
+      defaults: { duration: 0.6, ease: "power3.out" },
+      onComplete: () => {
+        busy = false;
+        currentTl = null;
+        document.body.classList.remove('is-expanded');
+        // Fokus zurück auf das Panel, falls er auf dem Back-Button lag oder verloren ging
+        const focused = document.activeElement;
+        if (focused === resetBtn || focused === document.body || previous.panel.contains(focused)) {
+          previous.openBtn?.focus({ preventScroll: true });
         }
-      });
-    </script>
+      },
+    });
+    currentTl = tl;
 
-    <Preloader demoTitle="Analogue Session & More" />
+    parts.forEach((p, i) => {
+      if (p.player) {
+        p.player.style.pointerEvents = "none";
+        tl.to(p.player, { autoAlpha: 0, y: 24, duration: 0.25 }, 0);
+      }
+      if (p.header) tl.to(p.header, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }, 0);
+      if (p.artwork) tl.to(p.artwork, { scale: 1, opacity: 1, y: 0 }, 0);
+      if (p.bgImage) tl.to(p.bgImage, { scale: 1 }, 0);
+      tl.to(p.panel, collapsedBox(i, vp), 0);
+    });
+    tl.to(resetBtn, { bottom: -100, autoAlpha: 0, duration: 0.3, ease: "power2.in" }, 0);
 
-</BaseLayout>
+    if (prefersReducedMotion()) tl.timeScale(6);
+  }
+
+  resetBtn.addEventListener('click', collapse);
+
+  window.addEventListener('keydown', (e) => {
+    // Ist das Info-Overlay offen, schließt Escape zuerst nur das Overlay
+    if (e.key !== 'Escape' || e.defaultPrevented || document.body.classList.contains('info-open')) return;
+    collapse();
+  });
+</script>

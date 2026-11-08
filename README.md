@@ -1,43 +1,50 @@
-# Astro Starter Kit: Minimal
+# IHEIZ – Music Demo
+
+Einseitige Promo-Seite für A&R: Tracks als schräge Panels, die sich per Klick öffnen und einen Player mit Wellenform zeigen. Dazu ein Info-Overlay mit Bio und Kontakt.
+
+Gebaut mit [Astro](https://docs.astro.build) (statisch), Tailwind CSS v4 und GSAP.
+
+## Einrichten
 
 ```sh
-npm create astro@latest -- --template minimal
+npm ci
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Die Audiodateien sind **nicht** im Repository (`*.mp3`/`*.wav` stehen in `.gitignore`). Sie gehören nach `public/music/`, z. B. `public/music/IHEIZ_01.mp3`.
 
-## 🚀 Project Structure
+## Befehle
 
-Inside of your Astro project, you'll see the following folders and files:
+| Befehl            | Zweck                                                         |
+| :---------------- | :------------------------------------------------------------ |
+| `npm run dev`     | Entwicklungsserver (`astro dev --background` für Hintergrund) |
+| `npm run build`   | Produktionsversion nach `dist/`                               |
+| `npm run preview` | Gebaute Version lokal ansehen                                 |
+| `npm run check`   | Typprüfung (TypeScript strict)                                |
+| `npm run peaks`   | Wellenformen aus `public/music/*.mp3` neu berechnen           |
+
+## Einen Track hinzufügen oder ersetzen
+
+1. MP3 nach `public/music/` kopieren.
+2. Eintrag in [`src/data/tracks.ts`](src/data/tracks.ts) anlegen (Titel, Farbe, Hintergrundbild, …).
+3. `npm run peaks` ausführen. Das schreibt `src/data/waveforms.json` – diese Datei einchecken.
+
+Ohne Schritt 3 berechnet der Browser die Wellenform selbst. Das funktioniert, lädt dafür aber die komplette Datei und ist auf Mobilgeräten langsam (Hinweis in der Browser-Konsole).
+
+Das Layout rechnet sich für beliebig viele Tracks aus; ausgelegt und abgestimmt ist es auf drei. Bei mehr Tracks werden die Panels auf dem Desktop schmaler – die Titelgrößen in `TrackPanel.astro` dann ggf. anpassen.
+
+## Aufbau
 
 ```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+public/
+  fonts/              Inter (lokal, woff2)
+  music/              Audiodateien (nicht in Git)
+scripts/
+  generate-peaks.mjs  Wellenformen vorberechnen
+src/
+  components/         TrackPanel, WaveformPlayer, InfoOverlay, Preloader, Artworks
+  data/               tracks.ts (Inhalte), waveforms.json (generiert)
+  layouts/            BaseLayout (Head, Meta-Tags, Schriften)
+  pages/index.astro   Seite + Panel-Animationen (GSAP)
+  styles/global.css   Tailwind, Schriften, eigene Komponenten-Klassen
+  types/              TypeScript-Typen
 ```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).

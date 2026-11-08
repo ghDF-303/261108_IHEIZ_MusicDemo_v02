@@ -3,7 +3,6 @@ import type { ImageMetadata } from 'astro';
 export interface DownloadOptions {
   mp3?: string;
   wav?: string;
-  stems?: string;
 }
 
 export interface TrackConfig {
@@ -12,6 +11,7 @@ export interface TrackConfig {
   isFeatured?: boolean;
   title: string;
   subtitle: string;
+  /** Pfad unter public/, z. B. '/music/IHEIZ_01.mp3'. Wellenform per `npm run peaks` erzeugen. */
   audio: string;
   gradient: string;
   accentColor: string;
@@ -20,9 +20,5 @@ export interface TrackConfig {
   bgOpacity?: number;
 }
 
-export interface TrackArtworkProps {
-  trackNumber: string;
-  trackId: string;
-  accentColor: string;
-  title: string;
-}
+/** Lage eines Panels in der Reihe – bestimmt die Schrägen auf Mobile. */
+export type PanelPosition = 'only' | 'first' | 'middle' | 'last';

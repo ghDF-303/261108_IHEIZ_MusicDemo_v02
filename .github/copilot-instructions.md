@@ -10,3 +10,8 @@
 ## Komponenten-Konventionen
 - Props immer über typisierte Interfaces in `src/types/` definieren.
 - Bei Änderungen an `TrackArtwork` immer Layer 1 (Nummer), Layer 2 (HUD) und Layer 3 (Emblem) getrennt halten.
+
+## Layout & Daten
+- Panel-Positionen werden in `src/pages/index.astro` für beliebig viele Tracks berechnet – keine festen `#panel-N`-Selektoren für Layout verwenden.
+- Wellenformen sind vorberechnet (`src/data/waveforms.json`). Nach jeder Änderung an Audiodateien `npm run peaks` ausführen.
+- Eigene CSS-Regeln in `global.css` immer in `@layer base` oder `@layer components`, damit Tailwind-Klassen sie überschreiben können.

@@ -10,14 +10,15 @@ const { demoTitle = 'A&R Promo Selection' } = Astro.props;
 <div
   id="app-preloader"
   class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505] text-white select-none isolate"
+  role="status"
   aria-busy="true"
-  aria-label="Lade Promo Material"
+  aria-label="Loading"
 >
   <div class="preloader-content flex flex-col items-center text-center px-4 will-change-transform">
-    <!-- GROSSER TITEL -->
-    <h1 class="text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tighter leading-none">
+    <!-- GROSSER TITEL (die eigentliche h1 steht in index.astro) -->
+    <p class="text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tighter leading-none">
       IHEIZ
-    </h1>
+    </p>
 
     <!-- SUBTITLE (DEMO TITLE) -->
     <p class="text-sm sm:text-base md:text-lg font-bold uppercase tracking-widest text-white/80 mt-3 sm:mt-4">
@@ -36,7 +37,7 @@ const { demoTitle = 'A&R Promo Selection' } = Astro.props;
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        class="w-full h-full animate-[spin_2s_linear_infinite]"
+        class="w-full h-full animate-[spin_2s_linear_infinite] motion-reduce:animate-none"
         aria-hidden="true"
       >
         <circle
@@ -65,7 +66,7 @@ const { demoTitle = 'A&R Promo Selection' } = Astro.props;
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        class="absolute inset-2 w-auto h-auto animate-[spin_1.2s_linear_infinite_reverse]"
+        class="absolute inset-2 w-auto h-auto animate-[spin_1.2s_linear_infinite_reverse] motion-reduce:animate-none"
         aria-hidden="true"
       >
         <polygon
@@ -82,16 +83,22 @@ const { demoTitle = 'A&R Promo Selection' } = Astro.props;
 <script>
   import { gsap } from 'gsap';
 
+  // Mindestanzeige: verhindert unruhiges Aufflackern bei schnellem Cache
+  const MIN_DISPLAY_MS = 600;
+  // Sicherheitsnetz: Seite spätestens nach dieser Zeit freigeben, auch wenn ein Bild hängt
+  const MAX_WAIT_MS = 5000;
+
   const preloader = document.querySelector<HTMLElement>('#app-preloader');
   const content = document.querySelector<HTMLElement>('.preloader-content');
 
+  const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
   // 1. Schriften abwarten
-  const fontsPromise = 'fonts' in document ? document.fonts.ready : Promise.resolve();
+  const fontsPromise = 'fonts' in document ? document.fonts.ready.then(() => undefined) : Promise.resolve();
 
   // 2. Initial im DOM vorhandene Bilder abwarten
-  const images = Array.from(document.images);
   const imagesPromise = Promise.all(
-    images.map((img) => {
+    Array.from(document.images).map((img) => {
       if (img.complete) return Promise.resolve();
       return new Promise<void>((resolve) => {
         img.addEventListener('load', () => resolve(), { once: true });
@@ -100,19 +107,16 @@ const { demoTitle = 'A&R Promo Selection' } = Astro.props;
     })
   );
 
-  // 3. Mindestanzeige (verhindert unruhiges Aufflackern bei schnellem Cache)
-  const minDelayPromise = new Promise<void>((resolve) => setTimeout(resolve, 1000));
+  const ready = Promise.all([fontsPromise, imagesPromise, delay(MIN_DISPLAY_MS)]);
 
-  // 4. Lifecycle ausführen
-  Promise.all([fontsPromise, imagesPromise, minDelayPromise]).then(() => {
+  // 3. Lifecycle ausführen
+  Promise.race([ready, delay(MAX_WAIT_MS)]).then(() => {
     if (!preloader || !content) return;
 
     const tl = gsap.timeline({
       onComplete: () => {
         preloader.style.display = 'none';
         preloader.setAttribute('aria-busy', 'false');
-        // Signal für index.astro (z. B. für Schienen-Intro-Tween)
-        window.dispatchEvent(new CustomEvent('app:ready'));
       }
     });
 
