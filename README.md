@@ -20,15 +20,26 @@ Die Audiodateien sind **nicht** im Repository (`*.mp3`/`*.wav` stehen in `.gitig
 | `npm run build`   | Produktionsversion nach `dist/`                               |
 | `npm run preview` | Gebaute Version lokal ansehen                                 |
 | `npm run check`   | Typprüfung (TypeScript strict)                                |
-| `npm run peaks`   | Wellenformen aus `public/music/*.mp3` neu berechnen           |
+| `npm run peaks`   | Wellenformen manuell aktualisieren (`-- --force`: alle neu)   |
 
 ## Einen Track hinzufügen oder ersetzen
 
-1. MP3 nach `public/music/` kopieren.
-2. Eintrag in [`src/data/tracks.ts`](src/data/tracks.ts) anlegen (Titel, Farbe, Hintergrundbild, …).
-3. `npm run peaks` ausführen. Das schreibt `src/data/waveforms.json` – diese Datei einchecken.
+1. MP3 nach `public/music/` kopieren (oder eine vorhandene Datei ersetzen).
+2. Bei neuen Tracks: Eintrag in [`src/data/tracks.ts`](src/data/tracks.ts) anlegen (Titel, Farbe, Hintergrundbild, …).
+3. Die geänderte `src/data/waveforms.json` mit einchecken.
 
-Ohne Schritt 3 berechnet der Browser die Wellenform selbst. Das funktioniert, lädt dafür aber die komplette Datei und ist auf Mobilgeräten langsam (Hinweis in der Browser-Konsole).
+### Wellenformen werden automatisch berechnet
+
+Die Integration [`scripts/waveform-integration.mjs`](scripts/waveform-integration.mjs) hält `src/data/waveforms.json` aktuell:
+
+- beim Start von `astro dev` und `astro build`,
+- im laufenden Dev-Server, sobald in `public/music/` eine MP3 hinzukommt, ersetzt oder gelöscht wird (die Seite lädt danach neu).
+
+Jede Datei wird über einen Prüfwert ihres **Inhalts** erkannt. Unveränderte Dateien werden übersprungen (der Start bleibt schnell), eine unter gleichem Namen ersetzte Datei wird zuverlässig neu berechnet.
+
+Fehlen die MP3s (z. B. auf einem Build-Server), bleiben die eingecheckten Wellenformen erhalten. Wellenformen von Dateien, die in `tracks.ts` noch verwendet werden, werden nie gelöscht.
+
+Gibt es für einen Track gar keine Wellenform, berechnet der Browser sie notfalls selbst – das lädt die komplette Datei und ist auf Mobilgeräten langsam (Hinweis in der Browser-Konsole).
 
 Das Layout rechnet sich für beliebig viele Tracks aus; ausgelegt und abgestimmt ist es auf drei. Bei mehr Tracks werden die Panels auf dem Desktop schmaler – die Titelgrößen in `TrackPanel.astro` dann ggf. anpassen.
 
@@ -39,7 +50,8 @@ public/
   fonts/              Inter (lokal, woff2)
   music/              Audiodateien (nicht in Git)
 scripts/
-  generate-peaks.mjs  Wellenformen vorberechnen
+  generate-peaks.mjs          Wellenformen vorberechnen (nur geänderte Dateien)
+  waveform-integration.mjs    Astro-Integration: ruft das automatisch auf
 src/
   components/         TrackPanel, WaveformPlayer, InfoOverlay, Preloader, Artworks
   data/               tracks.ts (Inhalte), waveforms.json (generiert)

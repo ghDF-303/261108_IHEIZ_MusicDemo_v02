@@ -20,5 +20,13 @@ export interface TrackConfig {
   bgOpacity?: number;
 }
 
+/** Eintrag in src/data/waveforms.json (erzeugt von scripts/generate-peaks.mjs). */
+export interface WaveformEntry {
+  /** Prüfwert des Dateiinhalts – erkennt ersetzte Dateien */
+  hash: string;
+  /** 96 Werte zwischen 0.12 und 1 */
+  peaks: number[];
+}
+
 /** Lage eines Panels in der Reihe – bestimmt die Schrägen auf Mobile. */
 export type PanelPosition = 'only' | 'first' | 'middle' | 'last';

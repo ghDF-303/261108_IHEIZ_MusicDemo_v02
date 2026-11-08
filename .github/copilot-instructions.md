@@ -13,5 +13,5 @@
 
 ## Layout & Daten
 - Panel-Positionen werden in `src/pages/index.astro` für beliebig viele Tracks berechnet – keine festen `#panel-N`-Selektoren für Layout verwenden.
-- Wellenformen sind vorberechnet (`src/data/waveforms.json`). Nach jeder Änderung an Audiodateien `npm run peaks` ausführen.
+- Wellenformen sind vorberechnet (`src/data/waveforms.json`) und werden von der Integration `scripts/waveform-integration.mjs` automatisch aktualisiert (dev, build, Dateiänderungen). Die JSON-Datei nicht von Hand bearbeiten.
 - Eigene CSS-Regeln in `global.css` immer in `@layer base` oder `@layer components`, damit Tailwind-Klassen sie überschreiben können.

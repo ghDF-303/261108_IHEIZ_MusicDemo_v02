@@ -1,6 +1,6 @@
 ---
 // src/components/TrackPanel.astro
-import type { PanelPosition, TrackConfig } from '../types/track';
+import type { PanelPosition, TrackConfig, WaveformEntry } from '../types/track';
 import { Image } from 'astro:assets';
 import WaveformPlayer from './WaveformPlayer.astro';
 import TrackArtwork from './TrackArtwork.astro';
@@ -19,8 +19,8 @@ const isFeatured = Boolean(track.isFeatured);
 const position: PanelPosition =
   total === 1 ? 'only' : index === 0 ? 'first' : index === total - 1 ? 'last' : 'middle';
 
-// Vorberechnete Wellenform (src/data/waveforms.json, erzeugt mit `npm run peaks`)
-const peaks = (waveforms as Record<string, number[] | undefined>)[track.audio];
+// Vorberechnete Wellenform (src/data/waveforms.json, automatisch aktualisiert)
+const peaks = (waveforms as Record<string, WaveformEntry | undefined>)[track.audio]?.peaks;
 ---
 
 <section
